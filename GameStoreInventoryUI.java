@@ -1,8 +1,8 @@
 import java.awt.*;
 import java.util.Arrays;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.*;
 
 public class GameStoreInventoryUI extends JFrame {
     int item_page_size = 5;
@@ -50,8 +50,7 @@ public class GameStoreInventoryUI extends JFrame {
             Products[] newProducts = Arrays.copyOf(products, products.length + temproducts.length);
             System.arraycopy(temproducts, 0, newProducts, products.length, temproducts.length);
             products = newProducts;
-            filteredProducts = products;
-            updateTable(currentPage);
+            searchProducts(search.getText()); 
         });
 
         sidebar.add(addSampleProductsBtn);
@@ -103,15 +102,14 @@ public class GameStoreInventoryUI extends JFrame {
 
         prevBtn.addActionListener(e -> {
             if (currentPage > 0) {
-                System.out.println("Previous button clicked");
                 currentPage--;
                 updateTable(currentPage);
             }
         });
 
         nextBtn.addActionListener(e -> {
-            if (currentPage < (products.length + item_page_size - 1) / item_page_size - 1) {
-                System.out.println("Next button clicked");
+            int totalPages = (int) Math.ceil((double) filteredProducts.length / item_page_size);
+            if (currentPage < totalPages - 1) {
                 currentPage++;
                 updateTable(currentPage);
             }
@@ -135,19 +133,19 @@ public class GameStoreInventoryUI extends JFrame {
         panel.add(label);
     }
 
-    private void searchProducts(String search) {
-        if (search.equals(SEARCH_PLACEHOLDER)) {
+    private void searchProducts(String searchText) {
+        if (searchText.isEmpty() || searchText.equals(SEARCH_PLACEHOLDER)) {
             filteredProducts = products;
-            updateTable(currentPage);
-            return;
+        } else {
+            filteredProducts = Arrays.stream(products)
+                    .filter(product -> product.getName().toLowerCase().contains(searchText.toLowerCase()))
+                    .toArray(Products[]::new);
         }
-        filteredProducts = Arrays.stream(products)
-                .filter(product -> product.getName().toLowerCase().contains(search.toLowerCase()))
-                .toArray(Products[]::new);
+        currentPage = 0; 
         updateTable(currentPage);
     }
 
-    private void updateTable(int currentPage) {
+    private void updateTable(int pageIndex) {
         // clear table
         tablePanel.removeAll();
         addHeader(tablePanel, "Type");
@@ -156,41 +154,25 @@ public class GameStoreInventoryUI extends JFrame {
         addHeader(tablePanel, "Price");
         addHeader(tablePanel, "Date Ordered");
 
-        if (search.getText().length() == 0) {
-            for (int start = currentPage * item_page_size; start < products.length
-                    && start < (currentPage + 1) * item_page_size; start++) {
-                Products product = products[start];
-                tablePanel.add(new JLabel(product.getType()));
-                tablePanel.add(new JLabel(product.getName()));
-                tablePanel.add(new JLabel(String.valueOf(product.getStock())));
-                tablePanel.add(new JLabel(String.valueOf(product.getPrice())));
-                tablePanel.add(new JLabel(product.getDateOrdered()));
-            }
-            pageNumber.setText(
-                    "Page " + (currentPage + 1) + " of " + ((products.length + item_page_size - 1) / item_page_size));
+        int start = pageIndex * item_page_size;
+        int end = Math.min(start + item_page_size, filteredProducts.length);
 
-            tablePanel.revalidate();
-            tablePanel.repaint();
-            paginationPanel.revalidate();
-            paginationPanel.repaint();
-        } else {
-            for (int start = currentPage * item_page_size; start < filteredProducts.length
-                    && start < (currentPage + 1) * item_page_size; start++) {
-                Products product = filteredProducts[start];
-                tablePanel.add(new JLabel(product.getType()));
-                tablePanel.add(new JLabel(product.getName()));
-                tablePanel.add(new JLabel(String.valueOf(product.getStock())));
-                tablePanel.add(new JLabel(String.valueOf(product.getPrice())));
-                tablePanel.add(new JLabel(product.getDateOrdered()));
-            }
-            pageNumber.setText(
-                    "Page " + (currentPage + 1) + " of " + ((products.length + item_page_size - 1) / item_page_size));
-
-            tablePanel.revalidate();
-            tablePanel.repaint();
-            paginationPanel.revalidate();
-            paginationPanel.repaint();
+        for (int i = start; i < end; i++) {
+            Products product = filteredProducts[i];
+            tablePanel.add(new JLabel(product.getType()));
+            tablePanel.add(new JLabel(product.getName()));
+            tablePanel.add(new JLabel(String.valueOf(product.getStock())));
+            tablePanel.add(new JLabel(String.valueOf(product.getPrice())));
+            tablePanel.add(new JLabel(product.getDateOrdered()));
         }
+
+        int totalPages = (int) Math.ceil((double) filteredProducts.length / item_page_size);
+        if (totalPages == 0) totalPages = 1; 
+
+        pageNumber.setText("Page " + (pageIndex + 1) + " of " + totalPages);
+
+        tablePanel.revalidate();
+        tablePanel.repaint();
     }
 
     public static void main(String[] args) {
