@@ -134,9 +134,11 @@ public class InventoryPage extends JFrame {
         
         if (!active) {
             btn.addActionListener(e -> {
+                this.dispose();
                 if (text.contains("Orders")) {
-                    this.dispose();
                     new GameStoreInventoryUI().setVisible(true);
+                } else if (text.contains("Dashboard")) {
+                    new DashboardPage().setVisible(true);
                 }
             });
         }
@@ -159,7 +161,6 @@ public class InventoryPage extends JFrame {
         if (searchText.isEmpty() || searchText.equals(SEARCH_PLACEHOLDER)) {
             filteredProducts = products;
         } else {
-            // Enhanced search logic: checks both Type (ID) and Name simultaneously
             filteredProducts = Arrays.stream(products)
                     .filter(p -> p.getName().toLowerCase().contains(searchText.toLowerCase()) || 
                                  p.getType().toLowerCase().contains(searchText.toLowerCase()))

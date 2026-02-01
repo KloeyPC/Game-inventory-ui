@@ -145,12 +145,15 @@ public class GameStoreInventoryUI extends JFrame {
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         
-        // Navigation Logic
         if (!active) {
             btn.addActionListener(e -> {
+                this.dispose();
                 if (text.contains("Inventory")) {
-                    this.dispose();
                     new InventoryPage().setVisible(true);
+                } else if (text.contains("Dashboard")) {
+                    new DashboardPage().setVisible(true);
+                } else if (text.contains("Orders")) {
+                    new GameStoreInventoryUI().setVisible(true);
                 }
             });
         }
@@ -200,12 +203,10 @@ public class GameStoreInventoryUI extends JFrame {
 
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.gridy = row;
-            gbc.insets = new Insets(10, 15, 10, 15);
+            gbc.insets = new Insets(15, 15, 15, 15);
 
             gbc.gridx = 0; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.WEST;
-            JLabel type = new JLabel(product.getType());
-            type.setForeground(Color.GRAY);
-            tablePanel.add(type, gbc);
+            tablePanel.add(new JLabel(product.getType()), gbc);
 
             gbc.gridx = 1; gbc.weightx = 0.4; gbc.anchor = GridBagConstraints.WEST;
             JLabel nameLbl = new JLabel(product.getName());
