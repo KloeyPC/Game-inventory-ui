@@ -1,6 +1,7 @@
- import java.awt.*;
+import java.awt.*;
 import java.util.Arrays;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -18,28 +19,35 @@ public class GameStoreInventoryUI extends JFrame {
     Products[] filteredProducts = products;
 
     JTextField search = new JTextField("");
-
     JPanel paginationPanel = new JPanel();
     JPanel tablePanel = new JPanel();
     JLabel pageNumber = new JLabel();
 
     public GameStoreInventoryUI() {
-        setTitle("Game Store Inventory Management System");
-        setSize(1000, 600);
+        setTitle("iSupply - Orders");
+        setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
-
-        JLabel title = new JLabel("GAME STORE INVENTORY MANAGEMENT SYSTEM");
-        title.setFont(new Font("Arial", Font.BOLD, 18));
-        title.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 10));
-        add(title, BorderLayout.NORTH);
+        getContentPane().setBackground(Color.WHITE);
 
         JPanel sidebar = new JPanel();
-        sidebar.setBackground(new Color(245, 245, 245));
-        sidebar.setPreferredSize(new Dimension(200, 0));
+        sidebar.setBackground(Color.WHITE);
+        sidebar.setPreferredSize(new Dimension(240, 0));
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
+        sidebar.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(240, 240, 240)));
 
-        JButton addSampleProductsBtn = new JButton("Add Sample Products");
+        JLabel logo = new JLabel("iSupply");
+        logo.setFont(new Font("Arial", Font.BOLD, 22));
+        logo.setBorder(new EmptyBorder(30, 30, 30, 0));
+        sidebar.add(logo);
+
+        sidebar.add(createSidebarBtn("\u25CF  Orders", true));
+        sidebar.add(createSidebarBtn("\u25CF  Inventory", false));
+        sidebar.add(createSidebarBtn("\u25CF  Dashboard", false));
+        sidebar.add(createSidebarBtn("\u25CF  Suppliers", false));
+        sidebar.add(createSidebarBtn("\u25CF  Reports", false));
+        
+        JButton addSampleProductsBtn = createSidebarBtn("\u2795  Add Samples", false);
         addSampleProductsBtn.addActionListener(e -> {
             Products[] temproducts = new Products[] {
                     new Products("PS6", "Devil May Cry 5 - Special Edition", 20, 19.99, "Jan 5"),
@@ -52,52 +60,60 @@ public class GameStoreInventoryUI extends JFrame {
             products = newProducts;
             searchProducts(search.getText()); 
         });
-
         sidebar.add(addSampleProductsBtn);
 
-        JLabel inventoryLbl = new JLabel("Inventory");
-        inventoryLbl.setFont(new Font("Arial", Font.BOLD, 16));
-        inventoryLbl.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 10));
-
-        JLabel ordersLbl = new JLabel("Orders");
-        ordersLbl.setBorder(BorderFactory.createEmptyBorder(10, 40, 10, 10));
-
-        sidebar.add(inventoryLbl);
-        sidebar.add(ordersLbl);
-
+        sidebar.add(Box.createVerticalGlue());
+        
+        JButton logoutBtn = createSidebarBtn("\u25CF  Logout", false);
+        logoutBtn.addActionListener(e -> {
+            this.dispose();
+            new LoginPage().setVisible(true);
+        });
+        sidebar.add(logoutBtn);
+        sidebar.add(Box.createVerticalStrut(20));
         add(sidebar, BorderLayout.WEST);
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(Color.WHITE);
+        mainPanel.setBorder(new EmptyBorder(40, 50, 40, 50));
 
-        GhostText ghostText = new GhostText(search, SEARCH_PLACEHOLDER);
-        ghostText.setGhostColor(Color.LIGHT_GRAY);
-        search.setPreferredSize(new Dimension(200, 30));
-        mainPanel.add(search, BorderLayout.NORTH);
+        JPanel headerPanel = new JPanel(new BorderLayout(0, 20));
+        headerPanel.setBackground(Color.WHITE);
+        
+        JLabel headerLabel = new JLabel("Orders");
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        
+        new GhostText(search, SEARCH_PLACEHOLDER);
+        search.setPreferredSize(new Dimension(350, 35));
+        search.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230)));
 
-        tablePanel.setLayout(new GridLayout(0, 5, 10, 10));
-        tablePanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+        headerPanel.add(headerLabel, BorderLayout.NORTH);
+        headerPanel.add(search, BorderLayout.WEST);
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
 
-        paginationPanel.setLayout(new FlowLayout());
-        JButton prevBtn = new JButton("Previous");
-        JButton nextBtn = new JButton("Next");
+        tablePanel.setBackground(Color.WHITE);
+        tablePanel.setBorder(new EmptyBorder(30, 0, 0, 0));
+        mainPanel.add(tablePanel, BorderLayout.CENTER);
+
+        paginationPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+        paginationPanel.setBackground(Color.WHITE);
+        JButton prevBtn = new JButton("<");
+        JButton nextBtn = new JButton(">");
+        paginationPanel.add(prevBtn);
+        paginationPanel.add(pageNumber);
+        paginationPanel.add(nextBtn);
+        mainPanel.add(paginationPanel, BorderLayout.SOUTH);
+
+        add(mainPanel, BorderLayout.CENTER);
 
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) {
-                searchProducts(search.getText());
-            }
-
+            public void insertUpdate(DocumentEvent e) { searchProducts(search.getText()); }
             @Override
-            public void removeUpdate(DocumentEvent e) {
-                searchProducts(search.getText());
-            }
-
+            public void removeUpdate(DocumentEvent e) { searchProducts(search.getText()); }
             @Override
-            public void changedUpdate(DocumentEvent e) {
-                searchProducts(search.getText());
-            }
+            public void changedUpdate(DocumentEvent e) { searchProducts(search.getText()); }
         });
 
         prevBtn.addActionListener(e -> {
@@ -115,22 +131,42 @@ public class GameStoreInventoryUI extends JFrame {
             }
         });
 
-        paginationPanel.add(prevBtn);
-        paginationPanel.add(pageNumber);
-        paginationPanel.add(nextBtn);
-
-        mainPanel.add(paginationPanel, BorderLayout.SOUTH);
-
         updateTable(currentPage);
-
-        mainPanel.add(tablePanel, BorderLayout.CENTER);
-        add(mainPanel, BorderLayout.CENTER);
     }
 
-    private void addHeader(JPanel panel, String text) {
+    private JButton createSidebarBtn(String text, boolean active) {
+        JButton btn = new JButton(text);
+        btn.setMaximumSize(new Dimension(220, 40));
+        btn.setFont(new Font("Arial", active ? Font.BOLD : Font.PLAIN, 14));
+        btn.setForeground(active ? Color.BLACK : Color.GRAY);
+        btn.setBackground(active ? new Color(245, 245, 245) : Color.WHITE);
+        btn.setHorizontalAlignment(SwingConstants.LEFT);
+        btn.setBorder(new EmptyBorder(0, 30, 0, 0));
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        
+        // Navigation Logic
+        if (!active) {
+            btn.addActionListener(e -> {
+                if (text.contains("Inventory")) {
+                    this.dispose();
+                    new InventoryPage().setVisible(true);
+                }
+            });
+        }
+        return btn;
+    }
+
+    private void addHeader(JPanel panel, String text, double weight, int anchor) {
         JLabel label = new JLabel(text);
+        label.setForeground(new Color(160, 160, 160));
         label.setFont(new Font("Arial", Font.BOLD, 12));
-        panel.add(label);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0;
+        gbc.weightx = weight;
+        gbc.anchor = anchor;
+        gbc.insets = new Insets(0, 15, 20, 15);
+        panel.add(label, gbc);
     }
 
     private void searchProducts(String searchText) {
@@ -146,30 +182,62 @@ public class GameStoreInventoryUI extends JFrame {
     }
 
     private void updateTable(int pageIndex) {
-        
         tablePanel.removeAll();
-        addHeader(tablePanel, "Type");
-        addHeader(tablePanel, "Name");
-        addHeader(tablePanel, "Stock");
-        addHeader(tablePanel, "Price");
-        addHeader(tablePanel, "Date Ordered");
+        tablePanel.setLayout(new GridBagLayout()); 
+
+        addHeader(tablePanel, "Type", 0.1, GridBagConstraints.WEST);
+        addHeader(tablePanel, "Name", 0.4, GridBagConstraints.WEST);
+        addHeader(tablePanel, "Stock", 0.1, GridBagConstraints.CENTER);
+        addHeader(tablePanel, "Track", 0.1, GridBagConstraints.CENTER);
+        addHeader(tablePanel, "Date Ordered", 0.3, GridBagConstraints.EAST);
 
         int start = pageIndex * item_page_size;
         int end = Math.min(start + item_page_size, filteredProducts.length);
 
         for (int i = start; i < end; i++) {
             Products product = filteredProducts[i];
-            tablePanel.add(new JLabel(product.getType()));
-            tablePanel.add(new JLabel(product.getName()));
-            tablePanel.add(new JLabel(String.valueOf(product.getStock())));
-            tablePanel.add(new JLabel(String.valueOf(product.getPrice())));
-            tablePanel.add(new JLabel(product.getDateOrdered()));
+            int row = (i - start) + 1;
+
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridy = row;
+            gbc.insets = new Insets(10, 15, 10, 15);
+
+            gbc.gridx = 0; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.WEST;
+            JLabel type = new JLabel(product.getType());
+            type.setForeground(Color.GRAY);
+            tablePanel.add(type, gbc);
+
+            gbc.gridx = 1; gbc.weightx = 0.4; gbc.anchor = GridBagConstraints.WEST;
+            JLabel nameLbl = new JLabel(product.getName());
+            nameLbl.setFont(new Font("Arial", Font.BOLD, 13));
+            tablePanel.add(nameLbl, gbc);
+
+            gbc.gridx = 2; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.CENTER;
+            JLabel stock = new JLabel(String.valueOf(product.getStock()), SwingConstants.CENTER);
+            stock.setPreferredSize(new Dimension(55, 30));
+            stock.setOpaque(true);
+            stock.setBackground(new Color(250, 250, 250));
+            stock.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true));
+            tablePanel.add(stock, gbc);
+
+            gbc.gridx = 3; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.CENTER;
+            JLabel track = new JLabel("Low", SwingConstants.CENTER);
+            track.setPreferredSize(new Dimension(55, 30));
+            track.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true));
+            tablePanel.add(track, gbc);
+
+            gbc.gridx = 4; gbc.weightx = 0.3; gbc.anchor = GridBagConstraints.EAST;
+            JPanel dateContainer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+            dateContainer.setOpaque(false);
+            dateContainer.add(new JLabel(product.getDateOrdered()));
+            dateContainer.add(new JLabel("\uD83D\uDC64")); 
+            dateContainer.add(new JLabel("\u22EE")); 
+            tablePanel.add(dateContainer, gbc);
         }
 
         int totalPages = (int) Math.ceil((double) filteredProducts.length / item_page_size);
         if (totalPages == 0) totalPages = 1; 
-
-        pageNumber.setText("Page " + (pageIndex + 1) + " of " + totalPages);
+        pageNumber.setText("Page " + (pageIndex + 1));
 
         tablePanel.revalidate();
         tablePanel.repaint();
@@ -177,8 +245,7 @@ public class GameStoreInventoryUI extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            
-            new LoginPage().setVisible(true);
+            new LoginPage().setVisible(true); 
         });
     }
 }
