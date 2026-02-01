@@ -177,7 +177,8 @@ public class GameStoreInventoryUI extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new GameStoreInventoryUI().setVisible(true);
+            
+            new LoginPage().setVisible(true);
         });
     }
 }

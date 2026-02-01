@@ -1,13 +1,9 @@
-// Source - https://stackoverflow.com/a
-// Posted by Xav
-// Retrieved 2026-01-29, License - CC BY-SA 3.0
-
 import java.awt.Color;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-
+import javax.swing.JPasswordField; // Added for password support
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
@@ -18,12 +14,20 @@ public class GhostText implements FocusListener, DocumentListener, PropertyChang
     private Color ghostColor;
     private Color foregroundColor;
     private final String ghostText;
+    private char defaultEchoChar; // Stores the original dot character
 
     public GhostText(final JTextComponent textComp, String ghostText) {
         super();
         this.textComp = textComp;
         this.ghostText = ghostText;
         this.ghostColor = Color.LIGHT_GRAY;
+
+        // If it's a password field, save the dot character and turn it off initially
+        if (textComp instanceof JPasswordField) {
+            defaultEchoChar = ((JPasswordField) textComp).getEchoChar();
+            ((JPasswordField) textComp).setEchoChar((char) 0);
+        }
+
         textComp.addFocusListener(this);
         registerListeners();
         updateState();
@@ -67,20 +71,30 @@ public class GhostText implements FocusListener, DocumentListener, PropertyChang
             try {
                 textComp.setText("");
                 textComp.setForeground(foregroundColor);
+                
+                // If password field, turn the dots back ON when user starts typing
+                if (textComp instanceof JPasswordField) {
+                    ((JPasswordField) textComp).setEchoChar(defaultEchoChar);
+                }
             } finally {
                 registerListeners();
             }
         }
-
     }
 
     @Override
     public void focusLost(FocusEvent e) {
+        updateState();
         if (isEmpty) {
             unregisterListeners();
             try {
                 textComp.setText(ghostText);
                 textComp.setForeground(ghostColor);
+                
+                
+                if (textComp instanceof JPasswordField) {
+                    ((JPasswordField) textComp).setEchoChar((char) 0);
+                }
             } finally {
                 registerListeners();
             }
@@ -106,5 +120,4 @@ public class GhostText implements FocusListener, DocumentListener, PropertyChang
     public void removeUpdate(DocumentEvent e) {
         updateState();
     }
-
 }
