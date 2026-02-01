@@ -146,7 +146,7 @@ public class GameStoreInventoryUI extends JFrame {
     }
 
     private void updateTable(int pageIndex) {
-        // clear table
+        
         tablePanel.removeAll();
         addHeader(tablePanel, "Type");
         addHeader(tablePanel, "Name");

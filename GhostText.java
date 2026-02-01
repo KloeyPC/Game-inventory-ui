@@ -14,7 +14,7 @@ public class GhostText implements FocusListener, DocumentListener, PropertyChang
     private Color ghostColor;
     private Color foregroundColor;
     private final String ghostText;
-    private char defaultEchoChar; // Stores the original dot character
+    private char defaultEchoChar; 
 
     public GhostText(final JTextComponent textComp, String ghostText) {
         super();
@@ -22,7 +22,7 @@ public class GhostText implements FocusListener, DocumentListener, PropertyChang
         this.ghostText = ghostText;
         this.ghostColor = Color.LIGHT_GRAY;
 
-        // If it's a password field, save the dot character and turn it off initially
+        
         if (textComp instanceof JPasswordField) {
             defaultEchoChar = ((JPasswordField) textComp).getEchoChar();
             ((JPasswordField) textComp).setEchoChar((char) 0);
@@ -72,7 +72,7 @@ public class GhostText implements FocusListener, DocumentListener, PropertyChang
                 textComp.setText("");
                 textComp.setForeground(foregroundColor);
                 
-                // If password field, turn the dots back ON when user starts typing
+                
                 if (textComp instanceof JPasswordField) {
                     ((JPasswordField) textComp).setEchoChar(defaultEchoChar);
                 }

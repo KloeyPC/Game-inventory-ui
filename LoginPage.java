@@ -23,25 +23,25 @@ public class LoginPage extends JFrame {
         logoLabel.setFont(new Font("SansSerif", Font.PLAIN, 60));
         logoLabel.setForeground(Color.WHITE);
         gbc.gridy = 0;
-        gbc.insets = new Insets(10, 10, 40, 10); // Extra space below logo
+        gbc.insets = new Insets(10, 10, 40, 10); 
         mainPanel.add(logoLabel, gbc);
-        gbc.insets = new Insets(10, 10, 10, 10); // Reset insets
+        gbc.insets = new Insets(10, 10, 10, 10); 
 
         // Username
         JTextField userField = new JTextField(20);
         userField.setPreferredSize(new Dimension(300, 40));
         gbc.gridy = 1;
         mainPanel.add(userField, gbc);
-        new GhostText(userField, "USERNAME");
+        new GhostText(userField, "  \uD83D\uDC64   USERNAME"); 
 
-        // Password - Using JPasswordField for the "...." effect
+        // Password
         JPasswordField passField = new JPasswordField(20);
         passField.setPreferredSize(new Dimension(300, 40));
         gbc.gridy = 2;
         mainPanel.add(passField, gbc);
-        new GhostText(passField, "PASSWORD");
+        new GhostText(passField, "  \uD83D\uDD12   PASSWORD"); 
 
-        // Employee Login Button
+        
         JButton employeeBtn = createStyledButton("EMPLOYEE LOGIN");
         employeeBtn.addActionListener(e -> {
             this.dispose(); 
@@ -50,18 +50,36 @@ public class LoginPage extends JFrame {
         gbc.gridy = 3;
         mainPanel.add(employeeBtn, gbc);
 
-        // ADDED: Customer Login Button
+        
         JButton customerBtn = createStyledButton("CUSTOMER LOGIN");
         gbc.gridy = 4;
         mainPanel.add(customerBtn, gbc);
 
-        // ADDED: Forgot Password Link
-        JLabel forgotPwd = new JLabel("Forgot password?", SwingConstants.CENTER);
+        
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 40, 0));
+        footerPanel.setOpaque(false);
+
+        JLabel registerBtn = new JLabel("Register");
+        registerBtn.setForeground(Color.WHITE);
+        registerBtn.setFont(new Font("Arial", Font.PLAIN, 12));
+        registerBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        registerBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                dispose();
+                new RegisterPage().setVisible(true);
+            }
+        });
+
+        JLabel forgotPwd = new JLabel("Forgot password?");
         forgotPwd.setForeground(Color.WHITE);
         forgotPwd.setFont(new Font("Arial", Font.PLAIN, 12));
         forgotPwd.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        footerPanel.add(registerBtn);
+        footerPanel.add(forgotPwd);
+
         gbc.gridy = 5;
-        mainPanel.add(forgotPwd, gbc);
+        mainPanel.add(footerPanel, gbc);
 
         add(mainPanel);
     }
