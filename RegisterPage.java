@@ -27,7 +27,7 @@ public class RegisterPage extends JFrame {
         mainPanel.add(titleLabel, gbc);
         gbc.insets = new Insets(8, 10, 8, 10);
 
-        // Input Fields with GhostText and Icons
+        
         JTextField emailField = createStyledField();
         gbc.gridy = 1;
         mainPanel.add(emailField, gbc);

@@ -18,7 +18,7 @@ public class LoginPage extends JFrame {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Logo
+        
         JLabel logoLabel = new JLabel("iSupply", SwingConstants.CENTER);
         logoLabel.setFont(new Font("SansSerif", Font.PLAIN, 60));
         logoLabel.setForeground(Color.WHITE);
@@ -27,14 +27,14 @@ public class LoginPage extends JFrame {
         mainPanel.add(logoLabel, gbc);
         gbc.insets = new Insets(10, 10, 10, 10); 
 
-        // Username
+        
         JTextField userField = new JTextField(20);
         userField.setPreferredSize(new Dimension(300, 40));
         gbc.gridy = 1;
         mainPanel.add(userField, gbc);
         new GhostText(userField, "  \uD83D\uDC64   USERNAME"); 
 
-        // Password
+        
         JPasswordField passField = new JPasswordField(20);
         passField.setPreferredSize(new Dimension(300, 40));
         gbc.gridy = 2;
