@@ -5,9 +5,18 @@ import javax.swing.border.EmptyBorder;
 public class DashboardPage extends JFrame {
 
     public DashboardPage() {
+        this(null);
+    }
+
+    public DashboardPage(Point location) {
         setTitle("iSupply - Dashboard");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        if (location != null) {
+            setLocation(location);
+        } else {
+            setLocationRelativeTo(null);
+        }
         setLayout(new BorderLayout());
         getContentPane().setBackground(Color.WHITE);
 
@@ -33,7 +42,7 @@ public class DashboardPage extends JFrame {
         JButton logoutBtn = createSidebarBtn("\u25CF  Logout", false);
         logoutBtn.addActionListener(e -> {
             this.dispose();
-            new LoginPage().setVisible(true);
+            new LoginPage(this.getLocation()).setVisible(true);
         });
         sidebar.add(logoutBtn);
         sidebar.add(Box.createVerticalStrut(20));
@@ -48,7 +57,7 @@ public class DashboardPage extends JFrame {
         JLabel title = new JLabel("Dashboard");
         title.setFont(new Font("Arial", Font.BOLD, 20));
         headerPanel.add(title, BorderLayout.NORTH);
-        
+
         mainPanel.add(headerPanel, BorderLayout.NORTH);
 
         JPanel dashboardGrid = new JPanel(new GridBagLayout());
@@ -71,11 +80,15 @@ public class DashboardPage extends JFrame {
         GridBagConstraints bGbc = new GridBagConstraints();
         bGbc.fill = GridBagConstraints.BOTH;
         bGbc.insets = new Insets(0, 0, 0, 20);
-        
-        bGbc.gridx = 0; bGbc.weightx = 0.65; bGbc.weighty = 1.0;
+
+        bGbc.gridx = 0;
+        bGbc.weightx = 0.65;
+        bGbc.weighty = 1.0;
         bottomRow.add(createPopularSalesPanel(), bGbc);
 
-        bGbc.gridx = 1; bGbc.weightx = 0.35; bGbc.insets = new Insets(0, 0, 0, 0);
+        bGbc.gridx = 1;
+        bGbc.weightx = 0.35;
+        bGbc.insets = new Insets(0, 0, 0, 0);
         bottomRow.add(createKPICard("Profit", "₱450,678.90", "+20% month over month"), bGbc);
 
         gbc.gridy = 2;
@@ -89,7 +102,7 @@ public class DashboardPage extends JFrame {
     private JPanel createTimeFilter() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         panel.setOpaque(false);
-        String[] labels = {"1D", "1W", "1M", "3M", "6M", "YTD", "1Y", "ALL"};
+        String[] labels = { "1D", "1W", "1M", "3M", "6M", "YTD", "1Y", "ALL" };
         for (String label : labels) {
             JButton btn = new JButton(label);
             btn.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -98,9 +111,8 @@ public class DashboardPage extends JFrame {
             if (label.equals("1W")) {
                 btn.setBackground(Color.WHITE);
                 btn.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true),
-                    new EmptyBorder(5, 10, 5, 10)
-                ));
+                        BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true),
+                        new EmptyBorder(5, 10, 5, 10)));
             } else {
                 btn.setBackground(new Color(245, 245, 245));
                 btn.setForeground(Color.GRAY);
@@ -114,13 +126,12 @@ public class DashboardPage extends JFrame {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(240, 240, 240), 1, true),
-            new EmptyBorder(20, 20, 20, 20)
-        ));
+                BorderFactory.createLineBorder(new Color(240, 240, 240), 1, true),
+                new EmptyBorder(20, 20, 20, 20)));
         JLabel title = new JLabel("Profit Graph");
         title.setFont(new Font("Arial", Font.BOLD, 14));
         panel.add(title, BorderLayout.NORTH);
-        
+
         JLabel graphImage = new JLabel("Profit trend line visual here...", SwingConstants.CENTER);
         graphImage.setForeground(Color.LIGHT_GRAY);
         panel.add(graphImage, BorderLayout.CENTER);
@@ -131,9 +142,8 @@ public class DashboardPage extends JFrame {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(240, 240, 240), 1, true),
-            new EmptyBorder(25, 25, 25, 25)
-        ));
+                BorderFactory.createLineBorder(new Color(240, 240, 240), 1, true),
+                new EmptyBorder(25, 25, 25, 25)));
         JLabel titleLbl = new JLabel(title);
         titleLbl.setFont(new Font("Arial", Font.BOLD, 14));
         JLabel valLbl = new JLabel(value);
@@ -151,30 +161,30 @@ public class DashboardPage extends JFrame {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(240, 240, 240), 1, true),
-            new EmptyBorder(20, 20, 20, 20)
-        ));
+                BorderFactory.createLineBorder(new Color(240, 240, 240), 1, true),
+                new EmptyBorder(20, 20, 20, 20)));
         JLabel title = new JLabel("Popular Sales");
         title.setFont(new Font("Arial", Font.BOLD, 14));
         panel.add(title, BorderLayout.NORTH);
 
-        String[] cols = {"Title", "Orders", "Change"};
+        String[] cols = { "Title", "Orders", "Change" };
         Object[][] data = {
-            {"Pokemon Legends ZA", "100", "+84%"},
-            {"Clair Obscur: Expedition 33", "87", "-8%"},
-            {"Elden Ring Shadow of the Erdtree", "68", "+2%"},
-            {"Trails in the Sky 1st Chapter", "90", "+33%"},
-            {"Pokemon Scarlet", "85", "+30%"}
+                { "Pokemon Legends ZA", "100", "+84%" },
+                { "Clair Obscur: Expedition 33", "87", "-8%" },
+                { "Elden Ring Shadow of the Erdtree", "68", "+2%" },
+                { "Trails in the Sky 1st Chapter", "90", "+33%" },
+                { "Pokemon Scarlet", "85", "+30%" }
         };
 
         JPanel grid = new JPanel(new GridLayout(data.length + 1, 3, 0, 10));
         grid.setOpaque(false);
-        for(String c : cols) grid.add(new JLabel(c)).setForeground(Color.GRAY);
-        for(Object[] row : data) {
-            grid.add(new JLabel((String)row[0]));
-            grid.add(new JLabel((String)row[1]));
-            JLabel change = new JLabel((String)row[2]);
-            change.setForeground(((String)row[2]).contains("+") ? new Color(0, 150, 0) : Color.RED);
+        for (String c : cols)
+            grid.add(new JLabel(c)).setForeground(Color.GRAY);
+        for (Object[] row : data) {
+            grid.add(new JLabel((String) row[0]));
+            grid.add(new JLabel((String) row[1]));
+            JLabel change = new JLabel((String) row[2]);
+            change.setForeground(((String) row[2]).contains("+") ? new Color(0, 150, 0) : Color.RED);
             grid.add(change);
         }
         panel.add(grid, BorderLayout.CENTER);
@@ -191,13 +201,16 @@ public class DashboardPage extends JFrame {
         btn.setBorder(new EmptyBorder(0, 30, 0, 0));
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
-        
+
         if (!active) {
             btn.addActionListener(e -> {
                 this.dispose();
-                if (text.contains("Orders")) new GameStoreInventoryUI().setVisible(true);
-                else if (text.contains("Inventory")) new InventoryPage().setVisible(true);
-                else if (text.contains("Dashboard")) new DashboardPage().setVisible(true);
+                if (text.contains("Orders"))
+                    new GameStoreInventoryUI(this.getLocation()).setVisible(true);
+                else if (text.contains("Inventory"))
+                    new InventoryPage(this.getLocation()).setVisible(true);
+                else if (text.contains("Dashboard"))
+                    new DashboardPage(this.getLocation()).setVisible(true);
             });
         }
         return btn;

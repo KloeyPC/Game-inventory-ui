@@ -7,10 +7,19 @@ public class LoginPage extends JFrame {
     private final Color TEXT_BLUE = new Color(30, 80, 200);
 
     public LoginPage() {
+        this(null);
+    }
+
+    public LoginPage(Point location) {
         setTitle("iSupply Login");
         setSize(1000, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null); 
+
+        if (location != null) {
+            setLocation(location);
+        } else {
+            setLocationRelativeTo(null);
+        }
 
         JPanel mainPanel = new JPanel(new GridBagLayout());
         mainPanel.setBackground(BACKGROUND_BLUE);
@@ -18,44 +27,38 @@ public class LoginPage extends JFrame {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        
         JLabel logoLabel = new JLabel("iSupply", SwingConstants.CENTER);
         logoLabel.setFont(new Font("SansSerif", Font.PLAIN, 60));
         logoLabel.setForeground(Color.WHITE);
         gbc.gridy = 0;
-        gbc.insets = new Insets(10, 10, 40, 10); 
+        gbc.insets = new Insets(10, 10, 40, 10);
         mainPanel.add(logoLabel, gbc);
-        gbc.insets = new Insets(10, 10, 10, 10); 
+        gbc.insets = new Insets(10, 10, 10, 10);
 
-        
         JTextField userField = new JTextField(20);
         userField.setPreferredSize(new Dimension(300, 40));
         gbc.gridy = 1;
         mainPanel.add(userField, gbc);
-        new GhostText(userField, "  \uD83D\uDC64   USERNAME"); 
+        new GhostText(userField, "  \uD83D\uDC64   USERNAME");
 
-        
         JPasswordField passField = new JPasswordField(20);
         passField.setPreferredSize(new Dimension(300, 40));
         gbc.gridy = 2;
         mainPanel.add(passField, gbc);
-        new GhostText(passField, "  \uD83D\uDD12   PASSWORD"); 
+        new GhostText(passField, "  \uD83D\uDD12   PASSWORD");
 
-        
         JButton employeeBtn = createStyledButton("EMPLOYEE LOGIN");
         employeeBtn.addActionListener(e -> {
-            this.dispose(); 
-            new GameStoreInventoryUI().setVisible(true);
+            this.dispose();
+            new GameStoreInventoryUI(this.getLocation()).setVisible(true);
         });
         gbc.gridy = 3;
         mainPanel.add(employeeBtn, gbc);
 
-        
         JButton customerBtn = createStyledButton("CUSTOMER LOGIN");
         gbc.gridy = 4;
         mainPanel.add(customerBtn, gbc);
 
-        
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 40, 0));
         footerPanel.setOpaque(false);
 
@@ -66,7 +69,7 @@ public class LoginPage extends JFrame {
         registerBtn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 dispose();
-                new RegisterPage().setVisible(true);
+                new RegisterPage(getLocation()).setVisible(true);
             }
         });
 

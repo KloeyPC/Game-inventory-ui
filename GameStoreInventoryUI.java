@@ -24,9 +24,18 @@ public class GameStoreInventoryUI extends JFrame {
     JLabel pageNumber = new JLabel();
 
     public GameStoreInventoryUI() {
+        this(null);
+    }
+
+    public GameStoreInventoryUI(Point location) {
         setTitle("iSupply - Orders");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        if (location != null) {
+            setLocation(location);
+        } else {
+            setLocationRelativeTo(null);
+        }
         setLayout(new BorderLayout());
         getContentPane().setBackground(Color.WHITE);
 
@@ -46,7 +55,7 @@ public class GameStoreInventoryUI extends JFrame {
         sidebar.add(createSidebarBtn("\u25CF  Dashboard", false));
         sidebar.add(createSidebarBtn("\u25CF  Suppliers", false));
         sidebar.add(createSidebarBtn("\u25CF  Reports", false));
-        
+
         JButton addSampleProductsBtn = createSidebarBtn("\u2795  Add Samples", false);
         addSampleProductsBtn.addActionListener(e -> {
             Products[] temproducts = new Products[] {
@@ -58,16 +67,16 @@ public class GameStoreInventoryUI extends JFrame {
             Products[] newProducts = Arrays.copyOf(products, products.length + temproducts.length);
             System.arraycopy(temproducts, 0, newProducts, products.length, temproducts.length);
             products = newProducts;
-            searchProducts(search.getText()); 
+            searchProducts(search.getText());
         });
         sidebar.add(addSampleProductsBtn);
 
         sidebar.add(Box.createVerticalGlue());
-        
+
         JButton logoutBtn = createSidebarBtn("\u25CF  Logout", false);
         logoutBtn.addActionListener(e -> {
             this.dispose();
-            new LoginPage().setVisible(true);
+            new LoginPage(this.getLocation()).setVisible(true);
         });
         sidebar.add(logoutBtn);
         sidebar.add(Box.createVerticalStrut(20));
@@ -80,10 +89,10 @@ public class GameStoreInventoryUI extends JFrame {
 
         JPanel headerPanel = new JPanel(new BorderLayout(0, 20));
         headerPanel.setBackground(Color.WHITE);
-        
+
         JLabel headerLabel = new JLabel("Orders");
         headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        
+
         new GhostText(search, SEARCH_PLACEHOLDER);
         search.setPreferredSize(new Dimension(350, 35));
         search.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230)));
@@ -109,11 +118,19 @@ public class GameStoreInventoryUI extends JFrame {
 
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) { searchProducts(search.getText()); }
+            public void insertUpdate(DocumentEvent e) {
+                searchProducts(search.getText());
+            }
+
             @Override
-            public void removeUpdate(DocumentEvent e) { searchProducts(search.getText()); }
+            public void removeUpdate(DocumentEvent e) {
+                searchProducts(search.getText());
+            }
+
             @Override
-            public void changedUpdate(DocumentEvent e) { searchProducts(search.getText()); }
+            public void changedUpdate(DocumentEvent e) {
+                searchProducts(search.getText());
+            }
         });
 
         prevBtn.addActionListener(e -> {
@@ -144,16 +161,16 @@ public class GameStoreInventoryUI extends JFrame {
         btn.setBorder(new EmptyBorder(0, 30, 0, 0));
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
-        
+
         if (!active) {
             btn.addActionListener(e -> {
                 this.dispose();
                 if (text.contains("Inventory")) {
-                    new InventoryPage().setVisible(true);
+                    new InventoryPage(this.getLocation()).setVisible(true);
                 } else if (text.contains("Dashboard")) {
-                    new DashboardPage().setVisible(true);
+                    new DashboardPage(this.getLocation()).setVisible(true);
                 } else if (text.contains("Orders")) {
-                    new GameStoreInventoryUI().setVisible(true);
+                    new GameStoreInventoryUI(this.getLocation()).setVisible(true);
                 }
             });
         }
@@ -180,13 +197,13 @@ public class GameStoreInventoryUI extends JFrame {
                     .filter(product -> product.getName().toLowerCase().contains(searchText.toLowerCase()))
                     .toArray(Products[]::new);
         }
-        currentPage = 0; 
+        currentPage = 0;
         updateTable(currentPage);
     }
 
     private void updateTable(int pageIndex) {
         tablePanel.removeAll();
-        tablePanel.setLayout(new GridBagLayout()); 
+        tablePanel.setLayout(new GridBagLayout());
 
         addHeader(tablePanel, "Type", 0.1, GridBagConstraints.WEST);
         addHeader(tablePanel, "Name", 0.4, GridBagConstraints.WEST);
@@ -205,15 +222,21 @@ public class GameStoreInventoryUI extends JFrame {
             gbc.gridy = row;
             gbc.insets = new Insets(15, 15, 15, 15);
 
-            gbc.gridx = 0; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.WEST;
+            gbc.gridx = 0;
+            gbc.weightx = 0.1;
+            gbc.anchor = GridBagConstraints.WEST;
             tablePanel.add(new JLabel(product.getType()), gbc);
 
-            gbc.gridx = 1; gbc.weightx = 0.4; gbc.anchor = GridBagConstraints.WEST;
+            gbc.gridx = 1;
+            gbc.weightx = 0.4;
+            gbc.anchor = GridBagConstraints.WEST;
             JLabel nameLbl = new JLabel(product.getName());
             nameLbl.setFont(new Font("Arial", Font.BOLD, 13));
             tablePanel.add(nameLbl, gbc);
 
-            gbc.gridx = 2; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.CENTER;
+            gbc.gridx = 2;
+            gbc.weightx = 0.1;
+            gbc.anchor = GridBagConstraints.CENTER;
             JLabel stock = new JLabel(String.valueOf(product.getStock()), SwingConstants.CENTER);
             stock.setPreferredSize(new Dimension(55, 30));
             stock.setOpaque(true);
@@ -221,23 +244,28 @@ public class GameStoreInventoryUI extends JFrame {
             stock.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true));
             tablePanel.add(stock, gbc);
 
-            gbc.gridx = 3; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.CENTER;
+            gbc.gridx = 3;
+            gbc.weightx = 0.1;
+            gbc.anchor = GridBagConstraints.CENTER;
             JLabel track = new JLabel("Low", SwingConstants.CENTER);
             track.setPreferredSize(new Dimension(55, 30));
             track.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true));
             tablePanel.add(track, gbc);
 
-            gbc.gridx = 4; gbc.weightx = 0.3; gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 4;
+            gbc.weightx = 0.3;
+            gbc.anchor = GridBagConstraints.EAST;
             JPanel dateContainer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
             dateContainer.setOpaque(false);
             dateContainer.add(new JLabel(product.getDateOrdered()));
-            dateContainer.add(new JLabel("\uD83D\uDC64")); 
-            dateContainer.add(new JLabel("\u22EE")); 
+            dateContainer.add(new JLabel("\uD83D\uDC64"));
+            dateContainer.add(new JLabel("\u22EE"));
             tablePanel.add(dateContainer, gbc);
         }
 
         int totalPages = (int) Math.ceil((double) filteredProducts.length / item_page_size);
-        if (totalPages == 0) totalPages = 1; 
+        if (totalPages == 0)
+            totalPages = 1;
         pageNumber.setText("Page " + (pageIndex + 1));
 
         tablePanel.revalidate();
@@ -246,7 +274,7 @@ public class GameStoreInventoryUI extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new LoginPage().setVisible(true); 
+            new LoginPage().setVisible(true);
         });
     }
 }

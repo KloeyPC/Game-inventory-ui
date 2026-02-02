@@ -7,10 +7,18 @@ public class RegisterPage extends JFrame {
     private final Color TEXT_BLUE = new Color(30, 80, 200);
 
     public RegisterPage() {
+        this(null);
+    }
+
+    public RegisterPage(Point location) {
         setTitle("iSupply - Customer Register");
         setSize(1000, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+        if (location != null) {
+            setLocation(location);
+        } else {
+            setLocationRelativeTo(null);
+        }
 
         JPanel mainPanel = new JPanel(new GridBagLayout());
         mainPanel.setBackground(BACKGROUND_BLUE);
@@ -18,7 +26,6 @@ public class RegisterPage extends JFrame {
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        
         JLabel titleLabel = new JLabel("<html><center>Customer<br>Register</center></html>", SwingConstants.CENTER);
         titleLabel.setFont(new Font("SansSerif", Font.PLAIN, 50));
         titleLabel.setForeground(Color.WHITE);
@@ -27,7 +34,6 @@ public class RegisterPage extends JFrame {
         mainPanel.add(titleLabel, gbc);
         gbc.insets = new Insets(8, 10, 8, 10);
 
-        
         JTextField emailField = createStyledField();
         gbc.gridy = 1;
         mainPanel.add(emailField, gbc);
@@ -48,7 +54,6 @@ public class RegisterPage extends JFrame {
         mainPanel.add(confirmField, gbc);
         new GhostText(confirmField, "        CONFIRM PASSWORD");
 
-        
         JButton registerBtn = new JButton("REGISTER");
         registerBtn.setPreferredSize(new Dimension(350, 45));
         registerBtn.setBackground(BUTTON_WHITE);
@@ -58,13 +63,12 @@ public class RegisterPage extends JFrame {
         registerBtn.addActionListener(e -> {
             JOptionPane.showMessageDialog(this, "Account Created Successfully!");
             this.dispose();
-            new LoginPage().setVisible(true);
+            new LoginPage(this.getLocation()).setVisible(true);
         });
         gbc.gridy = 5;
         gbc.insets = new Insets(20, 10, 10, 10);
         mainPanel.add(registerBtn, gbc);
 
-        
         JLabel backToLogin = new JLabel("Back to login", SwingConstants.CENTER);
         backToLogin.setForeground(Color.WHITE);
         backToLogin.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -72,7 +76,7 @@ public class RegisterPage extends JFrame {
         backToLogin.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 dispose();
-                new LoginPage().setVisible(true);
+                new LoginPage(getLocation()).setVisible(true);
             }
         });
         gbc.gridy = 6;

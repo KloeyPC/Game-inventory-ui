@@ -1,0 +1,11 @@
+# Ignore everything
+*
+
+# Search in directories
+!*/
+
+# Unignore Java files
+!*.java
+
+# Unignore this file
+!.gitignore
