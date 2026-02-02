@@ -5,18 +5,15 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import java.util.List;
+
 public class GameStoreInventoryUI extends JFrame {
     int item_page_size = 5;
     int currentPage = 0;
     private static final String SEARCH_PLACEHOLDER = "Search orders...";
 
-    Products[] products = {
-            new Products("PS4", "Devil May Cry 5 - Special Edition", 20, 19.99, "Jan 5"),
-            new Products("Switch", "Pokemon Legends ZA", 100, 29.99, "Dec 3"),
-            new Products("Switch", "Zelda Breath of the Wild", 35, 19.99, "Oct 9"),
-            new Products("PS5", "Melty Blood Type Lumina", 67, 29.99, "Feb 9")
-    };
-    Products[] filteredProducts = products;
+    List<Products> products = ProductData.getProducts();
+    List<Products> filteredProducts = products;
 
     JTextField search = new JTextField("");
     JPanel paginationPanel = new JPanel();
@@ -55,21 +52,6 @@ public class GameStoreInventoryUI extends JFrame {
         sidebar.add(createSidebarBtn("\u25CF  Dashboard", false));
         sidebar.add(createSidebarBtn("\u25CF  Suppliers", false));
         sidebar.add(createSidebarBtn("\u25CF  Reports", false));
-
-        JButton addSampleProductsBtn = createSidebarBtn("\u2795  Add Samples", false);
-        addSampleProductsBtn.addActionListener(e -> {
-            Products[] temproducts = new Products[] {
-                    new Products("PS6", "Devil May Cry 5 - Special Edition", 20, 19.99, "Jan 5"),
-                    new Products("Switch", "Pokemon Legends ZA", 100, 29.99, "Dec 3"),
-                    new Products("Switch", "Zelda Breath of the Wild", 35, 19.99, "Oct 9"),
-                    new Products("PS5", "Melty Blood Type Lumina", 67, 29.99, "Feb 9")
-            };
-            Products[] newProducts = Arrays.copyOf(products, products.length + temproducts.length);
-            System.arraycopy(temproducts, 0, newProducts, products.length, temproducts.length);
-            products = newProducts;
-            searchProducts(search.getText());
-        });
-        sidebar.add(addSampleProductsBtn);
 
         sidebar.add(Box.createVerticalGlue());
 
@@ -141,7 +123,7 @@ public class GameStoreInventoryUI extends JFrame {
         });
 
         nextBtn.addActionListener(e -> {
-            int totalPages = (int) Math.ceil((double) filteredProducts.length / item_page_size);
+            int totalPages = (int) Math.ceil((double) filteredProducts.size() / item_page_size);
             if (currentPage < totalPages - 1) {
                 currentPage++;
                 updateTable(currentPage);
@@ -193,9 +175,9 @@ public class GameStoreInventoryUI extends JFrame {
         if (searchText.isEmpty() || searchText.equals(SEARCH_PLACEHOLDER)) {
             filteredProducts = products;
         } else {
-            filteredProducts = Arrays.stream(products)
-                    .filter(product -> product.getName().toLowerCase().contains(searchText.toLowerCase()))
-                    .toArray(Products[]::new);
+            java.util.stream.Stream<Products> stream = products.stream()
+                    .filter(product -> product.getName().toLowerCase().contains(searchText.toLowerCase()));
+            filteredProducts = stream.collect(java.util.stream.Collectors.toList());
         }
         currentPage = 0;
         updateTable(currentPage);
@@ -212,10 +194,10 @@ public class GameStoreInventoryUI extends JFrame {
         addHeader(tablePanel, "Date Ordered", 0.3, GridBagConstraints.EAST);
 
         int start = pageIndex * item_page_size;
-        int end = Math.min(start + item_page_size, filteredProducts.length);
+        int end = Math.min(start + item_page_size, filteredProducts.size());
 
         for (int i = start; i < end; i++) {
-            Products product = filteredProducts[i];
+            Products product = filteredProducts.get(i);
             int row = (i - start) + 1;
 
             GridBagConstraints gbc = new GridBagConstraints();
@@ -263,7 +245,7 @@ public class GameStoreInventoryUI extends JFrame {
             tablePanel.add(dateContainer, gbc);
         }
 
-        int totalPages = (int) Math.ceil((double) filteredProducts.length / item_page_size);
+        int totalPages = (int) Math.ceil((double) filteredProducts.size() / item_page_size);
         if (totalPages == 0)
             totalPages = 1;
         pageNumber.setText("Page " + (pageIndex + 1));
