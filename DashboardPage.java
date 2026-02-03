@@ -12,11 +12,8 @@ public class DashboardPage extends JFrame {
         setTitle("iSupply - Dashboard");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        if (location != null) {
-            setLocation(location);
-        } else {
-            setLocationRelativeTo(null);
-        }
+        if (location != null) setLocation(location);
+        else setLocationRelativeTo(null);
         setLayout(new BorderLayout());
         getContentPane().setBackground(Color.WHITE);
 
@@ -35,14 +32,15 @@ public class DashboardPage extends JFrame {
         sidebar.add(createSidebarBtn("\u25CF  Inventory", false));
         sidebar.add(createSidebarBtn("\u25CF  Dashboard", true));
         sidebar.add(createSidebarBtn("\u25CF  Suppliers", false));
-        sidebar.add(createSidebarBtn("\u25CF  Reports", false));
+        sidebar.add(createSidebarBtn("\u25CF  Feedback", false));
 
         sidebar.add(Box.createVerticalGlue());
 
         JButton logoutBtn = createSidebarBtn("\u25CF  Logout", false);
         logoutBtn.addActionListener(e -> {
+            Point loc = this.getLocation();
             this.dispose();
-            new LoginPage(this.getLocation()).setVisible(true);
+            new LoginPage(loc).setVisible(true);
         });
         sidebar.add(logoutBtn);
         sidebar.add(Box.createVerticalStrut(20));
@@ -81,14 +79,10 @@ public class DashboardPage extends JFrame {
         bGbc.fill = GridBagConstraints.BOTH;
         bGbc.insets = new Insets(0, 0, 0, 20);
 
-        bGbc.gridx = 0;
-        bGbc.weightx = 0.65;
-        bGbc.weighty = 1.0;
+        bGbc.gridx = 0; bGbc.weightx = 0.65; bGbc.weighty = 1.0;
         bottomRow.add(createPopularSalesPanel(), bGbc);
 
-        bGbc.gridx = 1;
-        bGbc.weightx = 0.35;
-        bGbc.insets = new Insets(0, 0, 0, 0);
+        bGbc.gridx = 1; bGbc.weightx = 0.35; bGbc.insets = new Insets(0, 0, 0, 0);
         bottomRow.add(createKPICard("Profit", "₱450,678.90", "+20% month over month"), bGbc);
 
         gbc.gridy = 2;
@@ -178,8 +172,7 @@ public class DashboardPage extends JFrame {
 
         JPanel grid = new JPanel(new GridLayout(data.length + 1, 3, 0, 10));
         grid.setOpaque(false);
-        for (String c : cols)
-            grid.add(new JLabel(c)).setForeground(Color.GRAY);
+        for (String c : cols) grid.add(new JLabel(c)).setForeground(Color.GRAY);
         for (Object[] row : data) {
             grid.add(new JLabel((String) row[0]));
             grid.add(new JLabel((String) row[1]));
@@ -204,13 +197,13 @@ public class DashboardPage extends JFrame {
 
         if (!active) {
             btn.addActionListener(e -> {
-                this.dispose();
-                if (text.contains("Orders"))
-                    new GameStoreInventoryUI(this.getLocation()).setVisible(true);
-                else if (text.contains("Inventory"))
-                    new InventoryPage(this.getLocation()).setVisible(true);
-                else if (text.contains("Dashboard"))
-                    new DashboardPage(this.getLocation()).setVisible(true);
+                Point currentLocation = this.getLocation(); 
+                this.dispose(); 
+                if (text.contains("Orders")) new GameStoreInventoryUI(currentLocation).setVisible(true);
+                else if (text.contains("Inventory")) new InventoryPage(currentLocation).setVisible(true);
+                else if (text.contains("Feedback")) new FeedbackPage(currentLocation).setVisible(true);
+                else if (text.contains("Suppliers")) new SuppliersPage(currentLocation).setVisible(true);
+                else if (text.contains("Dashboard")) new DashboardPage(currentLocation).setVisible(true);
             });
         }
         return btn;

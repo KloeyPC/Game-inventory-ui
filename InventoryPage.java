@@ -1,11 +1,9 @@
 import java.awt.*;
-import java.util.Arrays;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
-import java.util.List;
 
 public class InventoryPage extends JFrame {
     int item_page_size = 5;
@@ -27,11 +25,8 @@ public class InventoryPage extends JFrame {
         setTitle("iSupply - Inventory");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        if (location != null) {
-            setLocation(location);
-        } else {
-            setLocationRelativeTo(null);
-        }
+        if (location != null) setLocation(location);
+        else setLocationRelativeTo(null);
         setLayout(new BorderLayout());
         getContentPane().setBackground(Color.WHITE);
 
@@ -50,7 +45,7 @@ public class InventoryPage extends JFrame {
         sidebar.add(createSidebarBtn("\u25CF  Inventory", true));
         sidebar.add(createSidebarBtn("\u25CF  Dashboard", false));
         sidebar.add(createSidebarBtn("\u25CF  Suppliers", false));
-        sidebar.add(createSidebarBtn("\u25CF  Reports", false));
+        sidebar.add(createSidebarBtn("\u25CF  Feedback", false));
 
         JButton addProductBtn = new JButton("\u2795  Add Product");
         addProductBtn.setMaximumSize(new Dimension(220, 40));
@@ -69,8 +64,9 @@ public class InventoryPage extends JFrame {
 
         JButton logoutBtn = createSidebarBtn("\u25CF  Logout", false);
         logoutBtn.addActionListener(e -> {
+            Point loc = this.getLocation();
             this.dispose();
-            new LoginPage(this.getLocation()).setVisible(true);
+            new LoginPage(loc).setVisible(true);
         });
         sidebar.add(logoutBtn);
         sidebar.add(Box.createVerticalStrut(20));
@@ -111,19 +107,11 @@ public class InventoryPage extends JFrame {
 
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) {
-                searchProducts(search.getText());
-            }
-
+            public void insertUpdate(DocumentEvent e) { searchProducts(search.getText()); }
             @Override
-            public void removeUpdate(DocumentEvent e) {
-                searchProducts(search.getText());
-            }
-
+            public void removeUpdate(DocumentEvent e) { searchProducts(search.getText()); }
             @Override
-            public void changedUpdate(DocumentEvent e) {
-                searchProducts(search.getText());
-            }
+            public void changedUpdate(DocumentEvent e) { searchProducts(search.getText()); }
         });
 
         prevBtn.addActionListener(e -> {
@@ -157,14 +145,13 @@ public class InventoryPage extends JFrame {
 
         if (!active) {
             btn.addActionListener(e -> {
-                this.dispose();
-                if (text.contains("Orders")) {
-                    new GameStoreInventoryUI(this.getLocation()).setVisible(true);
-                } else if (text.contains("Dashboard")) {
-                    new DashboardPage(this.getLocation()).setVisible(true);
-                } else if (text.contains("Inventory")) {
-                    new InventoryPage(this.getLocation()).setVisible(true);
-                }
+                Point currentLocation = this.getLocation(); 
+                this.dispose(); 
+                if (text.contains("Orders")) new GameStoreInventoryUI(currentLocation).setVisible(true);
+                else if (text.contains("Dashboard")) new DashboardPage(currentLocation).setVisible(true);
+                else if (text.contains("Suppliers")) new SuppliersPage(currentLocation).setVisible(true);
+                else if (text.contains("Feedback")) new FeedbackPage(currentLocation).setVisible(true);
+                else if (text.contains("Inventory")) new InventoryPage(currentLocation).setVisible(true);
             });
         }
         return btn;
@@ -215,21 +202,15 @@ public class InventoryPage extends JFrame {
             gbc.gridy = row;
             gbc.insets = new Insets(10, 15, 10, 15);
 
-            gbc.gridx = 0;
-            gbc.weightx = 0.1;
-            gbc.anchor = GridBagConstraints.WEST;
+            gbc.gridx = 0; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.WEST;
             tablePanel.add(new JLabel(product.getType()), gbc);
 
-            gbc.gridx = 1;
-            gbc.weightx = 0.6;
-            gbc.anchor = GridBagConstraints.WEST;
+            gbc.gridx = 1; gbc.weightx = 0.6; gbc.anchor = GridBagConstraints.WEST;
             JLabel nameLbl = new JLabel(product.getName());
             nameLbl.setFont(new Font("Arial", Font.BOLD, 13));
             tablePanel.add(nameLbl, gbc);
 
-            gbc.gridx = 2;
-            gbc.weightx = 0.1;
-            gbc.anchor = GridBagConstraints.CENTER;
+            gbc.gridx = 2; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.CENTER;
             JLabel stock = new JLabel(String.valueOf(product.getStock()), SwingConstants.CENTER);
             stock.setPreferredSize(new Dimension(55, 30));
             stock.setOpaque(true);
@@ -237,9 +218,7 @@ public class InventoryPage extends JFrame {
             stock.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true));
             tablePanel.add(stock, gbc);
 
-            gbc.gridx = 3;
-            gbc.weightx = 0.2;
-            gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 3; gbc.weightx = 0.2; gbc.anchor = GridBagConstraints.EAST;
             JPanel actionContainer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
             actionContainer.setOpaque(false);
             actionContainer.add(new JLabel("\uD83D\uDC64"));
@@ -248,8 +227,7 @@ public class InventoryPage extends JFrame {
         }
 
         int totalPages = (int) Math.ceil((double) filteredProducts.size() / item_page_size);
-        if (totalPages == 0)
-            totalPages = 1;
+        if (totalPages == 0) totalPages = 1;
         pageNumber.setText("Page " + (pageIndex + 1));
 
         tablePanel.revalidate();
@@ -352,15 +330,12 @@ public class InventoryPage extends JFrame {
 
                 Products newOne = new Products(type, name, stock, price, date);
                 ProductData.addProduct(newOne);
-
                 products = ProductData.getProducts();
-
                 searchProducts(search.getText());
                 dispose();
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Invalid Number Format for Stock or Price.");
             } catch (Exception ex) {
-                ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error adding product: " + ex.getMessage());
             }
         }

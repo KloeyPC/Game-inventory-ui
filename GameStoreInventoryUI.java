@@ -1,11 +1,9 @@
 import java.awt.*;
-import java.util.Arrays;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
-import java.util.List;
 
 public class GameStoreInventoryUI extends JFrame {
     int item_page_size = 5;
@@ -28,11 +26,8 @@ public class GameStoreInventoryUI extends JFrame {
         setTitle("iSupply - Orders");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        if (location != null) {
-            setLocation(location);
-        } else {
-            setLocationRelativeTo(null);
-        }
+        if (location != null) setLocation(location);
+        else setLocationRelativeTo(null);
         setLayout(new BorderLayout());
         getContentPane().setBackground(Color.WHITE);
 
@@ -51,14 +46,15 @@ public class GameStoreInventoryUI extends JFrame {
         sidebar.add(createSidebarBtn("\u25CF  Inventory", false));
         sidebar.add(createSidebarBtn("\u25CF  Dashboard", false));
         sidebar.add(createSidebarBtn("\u25CF  Suppliers", false));
-        sidebar.add(createSidebarBtn("\u25CF  Reports", false));
+        sidebar.add(createSidebarBtn("\u25CF  Feedback", false));
 
         sidebar.add(Box.createVerticalGlue());
 
         JButton logoutBtn = createSidebarBtn("\u25CF  Logout", false);
         logoutBtn.addActionListener(e -> {
+            Point loc = this.getLocation();
             this.dispose();
-            new LoginPage(this.getLocation()).setVisible(true);
+            new LoginPage(loc).setVisible(true);
         });
         sidebar.add(logoutBtn);
         sidebar.add(Box.createVerticalStrut(20));
@@ -100,19 +96,11 @@ public class GameStoreInventoryUI extends JFrame {
 
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) {
-                searchProducts(search.getText());
-            }
-
+            public void insertUpdate(DocumentEvent e) { searchProducts(search.getText()); }
             @Override
-            public void removeUpdate(DocumentEvent e) {
-                searchProducts(search.getText());
-            }
-
+            public void removeUpdate(DocumentEvent e) { searchProducts(search.getText()); }
             @Override
-            public void changedUpdate(DocumentEvent e) {
-                searchProducts(search.getText());
-            }
+            public void changedUpdate(DocumentEvent e) { searchProducts(search.getText()); }
         });
 
         prevBtn.addActionListener(e -> {
@@ -146,14 +134,13 @@ public class GameStoreInventoryUI extends JFrame {
 
         if (!active) {
             btn.addActionListener(e -> {
-                this.dispose();
-                if (text.contains("Inventory")) {
-                    new InventoryPage(this.getLocation()).setVisible(true);
-                } else if (text.contains("Dashboard")) {
-                    new DashboardPage(this.getLocation()).setVisible(true);
-                } else if (text.contains("Orders")) {
-                    new GameStoreInventoryUI(this.getLocation()).setVisible(true);
-                }
+                Point currentLocation = this.getLocation(); 
+                this.dispose(); 
+                if (text.contains("Inventory")) new InventoryPage(currentLocation).setVisible(true);
+                else if (text.contains("Dashboard")) new DashboardPage(currentLocation).setVisible(true);
+                else if (text.contains("Suppliers")) new SuppliersPage(currentLocation).setVisible(true);
+                else if (text.contains("Feedback")) new FeedbackPage(currentLocation).setVisible(true);
+                else if (text.contains("Orders")) new GameStoreInventoryUI(currentLocation).setVisible(true);
             });
         }
         return btn;
@@ -204,21 +191,15 @@ public class GameStoreInventoryUI extends JFrame {
             gbc.gridy = row;
             gbc.insets = new Insets(15, 15, 15, 15);
 
-            gbc.gridx = 0;
-            gbc.weightx = 0.1;
-            gbc.anchor = GridBagConstraints.WEST;
+            gbc.gridx = 0; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.WEST;
             tablePanel.add(new JLabel(product.getType()), gbc);
 
-            gbc.gridx = 1;
-            gbc.weightx = 0.4;
-            gbc.anchor = GridBagConstraints.WEST;
+            gbc.gridx = 1; gbc.weightx = 0.4; gbc.anchor = GridBagConstraints.WEST;
             JLabel nameLbl = new JLabel(product.getName());
             nameLbl.setFont(new Font("Arial", Font.BOLD, 13));
             tablePanel.add(nameLbl, gbc);
 
-            gbc.gridx = 2;
-            gbc.weightx = 0.1;
-            gbc.anchor = GridBagConstraints.CENTER;
+            gbc.gridx = 2; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.CENTER;
             JLabel stock = new JLabel(String.valueOf(product.getStock()), SwingConstants.CENTER);
             stock.setPreferredSize(new Dimension(55, 30));
             stock.setOpaque(true);
@@ -226,17 +207,13 @@ public class GameStoreInventoryUI extends JFrame {
             stock.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true));
             tablePanel.add(stock, gbc);
 
-            gbc.gridx = 3;
-            gbc.weightx = 0.1;
-            gbc.anchor = GridBagConstraints.CENTER;
+            gbc.gridx = 3; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.CENTER;
             JLabel track = new JLabel("Low", SwingConstants.CENTER);
             track.setPreferredSize(new Dimension(55, 30));
             track.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true));
             tablePanel.add(track, gbc);
 
-            gbc.gridx = 4;
-            gbc.weightx = 0.3;
-            gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 4; gbc.weightx = 0.3; gbc.anchor = GridBagConstraints.EAST;
             JPanel dateContainer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
             dateContainer.setOpaque(false);
             dateContainer.add(new JLabel(product.getDateOrdered()));
@@ -246,8 +223,7 @@ public class GameStoreInventoryUI extends JFrame {
         }
 
         int totalPages = (int) Math.ceil((double) filteredProducts.size() / item_page_size);
-        if (totalPages == 0)
-            totalPages = 1;
+        if (totalPages == 0) totalPages = 1;
         pageNumber.setText("Page " + (pageIndex + 1));
 
         tablePanel.revalidate();
@@ -255,8 +231,6 @@ public class GameStoreInventoryUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new LoginPage().setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
     }
 }
