@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
@@ -10,13 +9,13 @@ public class SuppliersPage extends JFrame {
     static class SupplierEntry {
         String name;
         String category;
-        String imageUrl; 
+        String imagePath; 
         Color brandColor; 
 
-        public SupplierEntry(String name, String category, String imageUrl, Color brandColor) {
+        public SupplierEntry(String name, String category, String imagePath, Color brandColor) {
             this.name = name;
             this.category = category;
-            this.imageUrl = imageUrl;
+            this.imagePath = imagePath;
             this.brandColor = brandColor;
         }
     }
@@ -67,19 +66,18 @@ public class SuppliersPage extends JFrame {
         sidebar.add(Box.createVerticalStrut(20));
         add(sidebar, BorderLayout.WEST);
 
-        // Reverted to Light Mode background
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(new Color(252, 252, 252)); 
         mainPanel.setBorder(new EmptyBorder(30, 40, 30, 40));
 
-        JLabel title = new JLabel("Official Suppliers Directory");
+        JLabel title = new JLabel("Suppliers");
         title.setFont(new Font("Arial", Font.BOLD, 24));
-        title.setForeground(Color.BLACK); // Light mode text
+        title.setForeground(Color.BLACK); 
         title.setBorder(new EmptyBorder(0, 0, 20, 0));
         mainPanel.add(title, BorderLayout.NORTH);
 
         JPanel contentGrid = new JPanel(new GridLayout(0, 3, 25, 25)); 
-        contentGrid.setBackground(new Color(252, 252, 252)); // Light mode background
+        contentGrid.setBackground(new Color(252, 252, 252)); 
 
         for (SupplierEntry supplier : suppliers) {
             contentGrid.add(createSupplierCard(supplier));
@@ -94,29 +92,30 @@ public class SuppliersPage extends JFrame {
     }
 
     private void initData() {
+        // Updated to use the 6 local images you provided
         suppliers.add(new SupplierEntry("Sony PlayStation", "Consoles & First-Party Games", 
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/PlayStation_logo_and_wordmark.svg/512px-PlayStation_logo_and_wordmark.svg.png", new Color(0, 55, 145)));
+            "images/PlayStation.jpg", new Color(0, 55, 145)));
             
         suppliers.add(new SupplierEntry("Nintendo", "Switch & Family Titles", 
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Nintendo_red_logo.svg/512px-Nintendo_red_logo.svg.png", new Color(230, 0, 18)));
+            "images/nintendo.jpg", new Color(230, 0, 18)));
             
         suppliers.add(new SupplierEntry("Microsoft Xbox", "GamePass & Consoles", 
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Xbox_Logo.svg/512px-Xbox_Logo.svg.png", new Color(16, 124, 16)));
+            "images/xbox.jpg", new Color(16, 124, 16)));
             
         suppliers.add(new SupplierEntry("Bandai Namco", "Anime & Fighting Games", 
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Bandai_Namco_Entertainment_logo.svg/512px-Bandai_Namco_Entertainment_logo.svg.png", Color.ORANGE.darker()));
+            "images/bandai.png", Color.ORANGE.darker()));
             
         suppliers.add(new SupplierEntry("Capcom", "Action & Horror Games", 
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Capcom_logo.svg/512px-Capcom_logo.svg.png", new Color(0, 85, 160)));
+            "images/Capcom.jpg", new Color(0, 85, 160)));
             
         suppliers.add(new SupplierEntry("Square Enix", "JRPGs & Strategy", 
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Square_Enix_logo.svg/512px-Square_Enix_logo.svg.png", new Color(220, 20, 20)));
+            "images/SQ.png", new Color(220, 20, 20)));
     }
 
     private JPanel createSupplierCard(SupplierEntry supplier) {
         JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(Color.WHITE); // Light mode card background
-        card.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1)); // Subtle light border
+        card.setBackground(Color.WHITE); 
+        card.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1)); 
 
         JLabel imageLabel = new JLabel("", SwingConstants.CENTER);
         imageLabel.setOpaque(true);
@@ -124,9 +123,14 @@ public class SuppliersPage extends JFrame {
         imageLabel.setPreferredSize(new Dimension(300, 180));
         
         try {
-            URL url = new URL(supplier.imageUrl);
-            ImageIcon icon = new ImageIcon(url);
-            Image img = icon.getImage().getScaledInstance(200, 70, Image.SCALE_SMOOTH);
+            // Load local image
+            ImageIcon icon = new ImageIcon(supplier.imagePath);
+            
+            // Dynamic scaling for square vs rectangular logos
+            int imgWidth = (supplier.name.equals("Nintendo") || supplier.name.equals("Bandai Namco") || supplier.name.equals("Capcom") || supplier.name.equals("Square Enix") || supplier.name.equals("Sony PlayStation") || supplier.name.equals("Microsoft Xbox")) ? 150 : 200;
+            int imgHeight = (supplier.name.equals("Nintendo") || supplier.name.equals("Bandai Namco") || supplier.name.equals("Capcom") || supplier.name.equals("Square Enix") || supplier.name.equals("Sony PlayStation") || supplier.name.equals("Microsoft Xbox")) ? 150 : 70;
+
+            Image img = icon.getImage().getScaledInstance(imgWidth, imgHeight, Image.SCALE_SMOOTH);
             imageLabel.setIcon(new ImageIcon(img));
         } catch (Exception e) {
             imageLabel.setText(supplier.name); 
@@ -134,15 +138,15 @@ public class SuppliersPage extends JFrame {
         card.add(imageLabel, BorderLayout.NORTH);
 
         JPanel infoPanel = new JPanel(new GridLayout(3, 1, 0, 5));
-        infoPanel.setBackground(Color.WHITE); // Light mode info panel
+        infoPanel.setBackground(Color.WHITE); 
         infoPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
         JLabel nameLbl = new JLabel(supplier.name);
         nameLbl.setFont(new Font("Arial", Font.BOLD, 16));
-        nameLbl.setForeground(Color.BLACK); // Light mode text
+        nameLbl.setForeground(Color.BLACK); 
 
         JLabel categoryLbl = new JLabel(supplier.category);
-        categoryLbl.setForeground(Color.GRAY); // Light mode secondary text
+        categoryLbl.setForeground(Color.GRAY); 
         categoryLbl.setFont(new Font("Arial", Font.PLAIN, 13));
 
         JButton orderBtn = new JButton("Browse Catalog");
