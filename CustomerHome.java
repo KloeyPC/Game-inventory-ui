@@ -14,8 +14,9 @@ public class CustomerHome extends JFrame {
     private Map<Products, Integer> cart = new HashMap<>();
     private JLabel cartLabel;
     
-    private static final int BULK_THRESHOLD = 3;
-    private static final double DISCOUNT_RATE = 0.10;
+    private static final int BULK_MIN = 10;
+    private static final int BULK_LIMIT = 20;
+    private static final double DISCOUNT_RATE = 0.15;
 
     private Map<String, String> coverArtMap = new HashMap<>();
 
@@ -82,18 +83,6 @@ public class CustomerHome extends JFrame {
         contentPanel.setBackground(new Color(245, 245, 250));
         contentPanel.setBorder(new EmptyBorder(20, 40, 20, 40));
 
-        JPanel banner = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        banner.setBackground(new Color(220, 255, 220));
-        banner.setBorder(BorderFactory.createLineBorder(new Color(0, 150, 0), 1));
-        banner.setMaximumSize(new Dimension(1200, 40));
-        JLabel dealLabel = new JLabel("\uD83C\uDFF7\uFE0F BULK DEAL: Buy " + BULK_THRESHOLD + " or more copies of any game to get " + (int)(DISCOUNT_RATE*100) + "% OFF!");
-        dealLabel.setForeground(new Color(0, 100, 0));
-        dealLabel.setFont(new Font("Arial", Font.BOLD, 12));
-        banner.add(dealLabel);
-        
-        contentPanel.add(banner);
-        contentPanel.add(Box.createVerticalStrut(20));
-
         JLabel welcome = new JLabel("Featured Games");
         welcome.setFont(new Font("Arial", Font.BOLD, 24));
         welcome.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -124,7 +113,7 @@ public class CustomerHome extends JFrame {
 
     private void showCartDialog() {
         JDialog dialog = new JDialog(this, "Your Cart", true);
-        dialog.setSize(600, 500);
+        dialog.setSize(650, 550);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
         dialog.getContentPane().setBackground(Color.WHITE);
@@ -134,7 +123,7 @@ public class CustomerHome extends JFrame {
         listPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         listPanel.setBackground(Color.WHITE);
 
-        double tempTotal = 0; // Temporary variable for calculation
+        double tempTotal = 0;
 
         if (cart.isEmpty()) {
             listPanel.add(new JLabel("Your cart is empty."));
@@ -144,11 +133,17 @@ public class CustomerHome extends JFrame {
                 int qty = entry.getValue();
                 
                 double unitPrice = p.getPrice();
-                double lineTotal = unitPrice * qty;
-                boolean isDiscounted = qty >= BULK_THRESHOLD;
+                double lineTotal = 0;
+                boolean isBulkEligible = qty >= BULK_MIN;
                 
-                if (isDiscounted) {
-                    lineTotal = lineTotal * (1.0 - DISCOUNT_RATE);
+                if (isBulkEligible) {
+                    int discountedCount = Math.min(qty, BULK_LIMIT);
+                    int regularCount = qty - discountedCount;
+                    
+                    double discountedPrice = unitPrice * (1.0 - DISCOUNT_RATE);
+                    lineTotal = (discountedCount * discountedPrice) + (regularCount * unitPrice);
+                } else {
+                    lineTotal = qty * unitPrice;
                 }
                 
                 tempTotal += lineTotal;
@@ -156,16 +151,21 @@ public class CustomerHome extends JFrame {
                 JPanel row = new JPanel(new BorderLayout());
                 row.setBackground(Color.WHITE);
                 row.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(240, 240, 240)));
-                row.setMaximumSize(new Dimension(550, 60));
+                row.setMaximumSize(new Dimension(600, 70));
 
                 JLabel nameLbl = new JLabel("<html><b>" + p.getName() + "</b><br>Qty: " + qty + "</html>");
                 nameLbl.setBorder(new EmptyBorder(10, 0, 10, 0));
                 
                 String priceText = String.format("₱%.2f", lineTotal);
-                if (isDiscounted) {
-                    priceText = "<html><font color='red'><s>₱" + String.format("%.2f", p.getPrice() * qty) + "</s></font> " + 
-                                "<font color='green'>₱" + String.format("%.2f", lineTotal) + "</font><br>" +
-                                "<font size='2' color='green'>Bulk -10%</font></html>";
+                if (isBulkEligible) {
+                    int discCount = Math.min(qty, BULK_LIMIT);
+                    priceText = "<html><div style='text-align: right;'>" +
+                                "<font color='gray'>SRP: ₱" + p.getPrice() + "</font><br>" +
+                                "<font color='green'><b>Total: ₱" + String.format("%.2f", lineTotal) + "</b></font><br>" +
+                                "<font size='2' color='green'>" + discCount + " items @ 15% OFF</font>" + 
+                                "</div></html>";
+                } else {
+                    priceText = "<html><b>₱" + String.format("%.2f", lineTotal) + "</b></html>";
                 }
                 
                 JLabel priceLbl = new JLabel(priceText, SwingConstants.RIGHT);
@@ -177,7 +177,6 @@ public class CustomerHome extends JFrame {
             }
         }
 
-        // Create a FINAL variable to hold the total for the button to use
         final double grandTotal = tempTotal;
 
         JScrollPane scroll = new JScrollPane(listPanel);
@@ -197,9 +196,8 @@ public class CustomerHome extends JFrame {
         checkoutBtn.setFont(new Font("Arial", Font.BOLD, 14));
         checkoutBtn.setFocusPainted(false);
         
-        // Now using the final variable inside the listener
         checkoutBtn.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialog, "Order Placed Successfully!\nTotal: ₱" + String.format("%.2f", grandTotal));
+            JOptionPane.showMessageDialog(dialog, "Order Placed Successfully!\nTotal Paid: ₱" + String.format("%.2f", grandTotal));
             cart.clear();
             updateCartLabel();
             dialog.dispose();
@@ -269,23 +267,36 @@ public class CustomerHome extends JFrame {
         price.setForeground(new Color(0, 150, 0));
         price.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JButton addBtn = new JButton("Add to Cart");
+        // --- NEW: Quantity Selector Panel ---
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        actionPanel.setBackground(Color.WHITE);
+        actionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JSpinner qtySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 99, 1));
+        qtySpinner.setPreferredSize(new Dimension(50, 35));
+        
+        JButton addBtn = new JButton("Add");
         addBtn.setBackground(new Color(30, 80, 200));
         addBtn.setForeground(Color.WHITE);
         addBtn.setFocusPainted(false);
-        addBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        addBtn.setMaximumSize(new Dimension(200, 35));
+        addBtn.setPreferredSize(new Dimension(80, 35));
         
         addBtn.addActionListener(e -> {
-            cart.put(p, cart.getOrDefault(p, 0) + 1);
+            int quantity = (Integer) qtySpinner.getValue();
+            cart.put(p, cart.getOrDefault(p, 0) + quantity);
             updateCartLabel();
         });
+
+        actionPanel.add(qtySpinner);
+        actionPanel.add(Box.createHorizontalStrut(10));
+        actionPanel.add(addBtn);
+        // ------------------------------------
 
         info.add(title);
         info.add(Box.createVerticalStrut(5));
         info.add(price);
         info.add(Box.createVerticalStrut(10));
-        info.add(addBtn);
+        info.add(actionPanel);
 
         card.add(info, BorderLayout.CENTER);
         return card;
