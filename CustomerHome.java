@@ -231,27 +231,23 @@ public class CustomerHome extends JFrame {
             }
             
             if (path != null) {
-                // Ensure we are loading from local class resource or file system
-                // Using ClassLoader is safer for 'images/' folder in project root
                 URL url = getClass().getClassLoader().getResource(path);
-                
-                // If not found in classpath, try loading as direct file path
-                if (url == null) {
+                Image imageToScale = null;
+
+                if (url != null) {
+                     imageToScale = ImageIO.read(url);
+                } else {
                      ImageIcon icon = new ImageIcon(path);
                      if (icon.getIconWidth() > 0) {
-                        Image img = icon.getImage().getScaledInstance(180, 220, Image.SCALE_SMOOTH);
-                        imgLabel.setIcon(new ImageIcon(img));
-                     } else {
-                        imgLabel.setText("No Image");
+                        imageToScale = icon.getImage();
                      }
+                }
+
+                if (imageToScale != null) {
+                    // Use the new smart scaling method
+                    imgLabel.setIcon(scaleImagePreservingRatio(imageToScale, 240, 240));
                 } else {
-                    Image image = ImageIO.read(url);
-                    if (image != null) {
-                        Image scaled = image.getScaledInstance(180, 220, Image.SCALE_SMOOTH);
-                        imgLabel.setIcon(new ImageIcon(scaled));
-                    } else {
-                        imgLabel.setText("No Image");
-                    }
+                    imgLabel.setText("No Image");
                 }
             } else {
                 imgLabel.setText(p.getName());
@@ -309,6 +305,24 @@ public class CustomerHome extends JFrame {
         return card;
     }
 
+    // New helper method to scale images nicely
+    private ImageIcon scaleImagePreservingRatio(Image originalImage, int targetWidth, int targetHeight) {
+        int originalWidth = originalImage.getWidth(null);
+        int originalHeight = originalImage.getHeight(null);
+
+        double widthRatio = (double) targetWidth / originalWidth;
+        double heightRatio = (double) targetHeight / originalHeight;
+
+        // Use the smaller ratio to fit the image entirely within the target box
+        double scaleFactor = Math.min(widthRatio, heightRatio);
+
+        int newWidth = (int) (originalWidth * scaleFactor);
+        int newHeight = (int) (originalHeight * scaleFactor);
+
+        Image scaledImage = originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+        return new ImageIcon(scaledImage);
+    }
+
     private JButton createNavButton(String text, boolean active) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Arial", active ? Font.BOLD : Font.PLAIN, 14));
@@ -321,7 +335,6 @@ public class CustomerHome extends JFrame {
     }
 
     private void initCoverArt() {
-        // Mapped to your specific uploaded files
         coverArtMap.put("Devil May Cry", "images/dmcv.png");
         coverArtMap.put("Resident Evil", "images/Residentvil.jpg");
         coverArtMap.put("Pokemon", "images/Pokemon_Legends_Z-A_Key_Art_Logo.png");
