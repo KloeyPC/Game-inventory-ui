@@ -47,15 +47,23 @@ public class LoginPage extends JFrame {
         mainPanel.add(passField, gbc);
         new GhostText(passField, "  \uD83D\uDD12   PASSWORD");
 
+        // --- EMPLOYEE LOGIN BUTTON ---
         JButton employeeBtn = createStyledButton("EMPLOYEE LOGIN");
         employeeBtn.addActionListener(e -> {
             this.dispose();
+            // Opens the Admin/Inventory Dashboard
             new GameStoreInventoryUI(this.getLocation()).setVisible(true);
         });
         gbc.gridy = 3;
         mainPanel.add(employeeBtn, gbc);
 
+        // --- CUSTOMER LOGIN BUTTON ---
         JButton customerBtn = createStyledButton("CUSTOMER LOGIN");
+        customerBtn.addActionListener(e -> {
+            this.dispose();
+            // UPDATED: Now opens the Customer Storefront
+            new CustomerHome(this.getLocation()).setVisible(true);
+        });
         gbc.gridy = 4;
         mainPanel.add(customerBtn, gbc);
 
