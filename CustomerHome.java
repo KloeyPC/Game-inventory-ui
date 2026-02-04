@@ -231,8 +231,20 @@ public class CustomerHome extends JFrame {
             }
             
             if (path != null) {
-                if (path.startsWith("http")) {
-                    URL url = new URL(path);
+                // Ensure we are loading from local class resource or file system
+                // Using ClassLoader is safer for 'images/' folder in project root
+                URL url = getClass().getClassLoader().getResource(path);
+                
+                // If not found in classpath, try loading as direct file path
+                if (url == null) {
+                     ImageIcon icon = new ImageIcon(path);
+                     if (icon.getIconWidth() > 0) {
+                        Image img = icon.getImage().getScaledInstance(180, 220, Image.SCALE_SMOOTH);
+                        imgLabel.setIcon(new ImageIcon(img));
+                     } else {
+                        imgLabel.setText("No Image");
+                     }
+                } else {
                     Image image = ImageIO.read(url);
                     if (image != null) {
                         Image scaled = image.getScaledInstance(180, 220, Image.SCALE_SMOOTH);
@@ -240,10 +252,6 @@ public class CustomerHome extends JFrame {
                     } else {
                         imgLabel.setText("No Image");
                     }
-                } else {
-                    ImageIcon icon = new ImageIcon(path);
-                    Image img = icon.getImage().getScaledInstance(180, 220, Image.SCALE_SMOOTH);
-                    imgLabel.setIcon(new ImageIcon(img));
                 }
             } else {
                 imgLabel.setText(p.getName());
@@ -267,7 +275,6 @@ public class CustomerHome extends JFrame {
         price.setForeground(new Color(0, 150, 0));
         price.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // --- NEW: Quantity Selector Panel ---
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         actionPanel.setBackground(Color.WHITE);
         actionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -285,12 +292,12 @@ public class CustomerHome extends JFrame {
             int quantity = (Integer) qtySpinner.getValue();
             cart.put(p, cart.getOrDefault(p, 0) + quantity);
             updateCartLabel();
+            qtySpinner.setValue(1); 
         });
 
         actionPanel.add(qtySpinner);
         actionPanel.add(Box.createHorizontalStrut(10));
         actionPanel.add(addBtn);
-        // ------------------------------------
 
         info.add(title);
         info.add(Box.createVerticalStrut(5));
@@ -314,13 +321,14 @@ public class CustomerHome extends JFrame {
     }
 
     private void initCoverArt() {
-        coverArtMap.put("Devil May Cry", "https://upload.wikimedia.org/wikipedia/en/a/a2/Devil_May_Cry_5_cover_art.png");
-        coverArtMap.put("Resident Evil", "https://upload.wikimedia.org/wikipedia/en/2/2c/Resident_Evil_Village_cover_art.png");
-        coverArtMap.put("Pokemon", "https://upload.wikimedia.org/wikipedia/en/3/3b/Pokemon_Legends_Z-A_cover_art.jpg");
-        coverArtMap.put("Zelda", "https://upload.wikimedia.org/wikipedia/en/c/c6/The_Legend_of_Zelda_Breath_of_the_Wild.jpg");
-        coverArtMap.put("God of War", "https://upload.wikimedia.org/wikipedia/en/e/ee/God_of_War_Ragnar%C3%B6k_cover.jpg");
-        coverArtMap.put("Trails", "https://upload.wikimedia.org/wikipedia/en/7/72/Trails_in_the_Sky_FC_cover.jpg");
-        coverArtMap.put("Monster Hunter", "https://upload.wikimedia.org/wikipedia/en/thumb/5/52/Monster_Hunter_Wilds_cover_art.jpg/220px-Monster_Hunter_Wilds_cover_art.jpg");
-        coverArtMap.put("Clair", "https://upload.wikimedia.org/wikipedia/en/thumb/a/a7/Clair_Obscur_Expedition_33_cover_art.jpg/220px-Clair_Obscur_Expedition_33_cover_art.jpg");
+        // Mapped to your specific uploaded files
+        coverArtMap.put("Devil May Cry", "images/dmcv.png");
+        coverArtMap.put("Resident Evil", "images/Residentvil.jpg");
+        coverArtMap.put("Pokemon", "images/Pokemon_Legends_Z-A_Key_Art_Logo.png");
+        coverArtMap.put("Zelda", "images/zelda.jpg");
+        coverArtMap.put("God of War", "images/godofwar.jpg");
+        coverArtMap.put("Trails", "images/trailsinthesky1st.jpg");
+        coverArtMap.put("Monster Hunter", "images/mhw.jpg");
+        coverArtMap.put("Clair", "images/expedition33.jpg");
     }
 }
