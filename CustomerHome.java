@@ -66,6 +66,11 @@ public class CustomerHome extends JFrame {
         JButton homeBtn = createNavButton("Home", true);
         JButton trackBtn = createNavButton("My Orders", false);
         
+        trackBtn.addActionListener(e -> {
+            this.dispose();
+            new MyOrdersPage(this.getLocation()).setVisible(true);
+        });
+        
         cartLabel = new JLabel("Cart (0)");
         cartLabel.setFont(new Font("Arial", Font.BOLD, 14));
         cartLabel.setForeground(new Color(30, 80, 200));
