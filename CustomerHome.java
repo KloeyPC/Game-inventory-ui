@@ -1,19 +1,32 @@
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public class CustomerHome extends JFrame {
 
     private Map<Products, Integer> cart = new HashMap<>();
-    private JLabel cartLabel;
+    private List<Products> allInventory;
+    private List<Products> currentViewList;
     
+    private int currentPage = 0;
+    private final int ITEMS_PER_PAGE = 8;
+
+    private JLabel cartLabel;
+    private JPanel gridPanel;
+    private JLabel pageLabel;
+    private JButton prevBtn, nextBtn;
+    private JTextField searchField;
+
     private static final int BULK_MIN = 10;
     private static final int BULK_LIMIT = 20;
     private static final double DISCOUNT_RATE = 0.15;
@@ -26,9 +39,11 @@ public class CustomerHome extends JFrame {
 
     public CustomerHome(Point location) {
         initCoverArt();
+        allInventory = ProductData.getProducts();
+        currentViewList = new ArrayList<>(allInventory);
 
         setTitle("iSupply - Game Store");
-        setSize(1200, 800);
+        setSize(1200, 850);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         if (location != null) setLocation(location);
         else setLocationRelativeTo(null);
@@ -55,7 +70,6 @@ public class CustomerHome extends JFrame {
         cartLabel.setFont(new Font("Arial", Font.BOLD, 14));
         cartLabel.setForeground(new Color(30, 80, 200));
         cartLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        
         cartLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -79,31 +93,133 @@ public class CustomerHome extends JFrame {
         add(navBar, BorderLayout.NORTH);
 
         JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setLayout(new BorderLayout());
         contentPanel.setBackground(new Color(245, 245, 250));
         contentPanel.setBorder(new EmptyBorder(20, 40, 20, 40));
 
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(245, 245, 250));
+        headerPanel.setBorder(new EmptyBorder(0, 0, 20, 0));
+
         JLabel welcome = new JLabel("Featured Games");
         welcome.setFont(new Font("Arial", Font.BOLD, 24));
-        welcome.setAlignmentX(Component.LEFT_ALIGNMENT);
-        contentPanel.add(welcome);
-        contentPanel.add(Box.createVerticalStrut(20));
+        
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        searchPanel.setOpaque(false);
+        JLabel searchIcon = new JLabel("\uD83D\uDD0D ");
+        searchIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        
+        searchField = new JTextField(20);
+        searchField.setPreferredSize(new Dimension(250, 35));
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)), 
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+        
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { filterProducts(); }
+            public void removeUpdate(DocumentEvent e) { filterProducts(); }
+            public void changedUpdate(DocumentEvent e) { filterProducts(); }
+        });
 
-        JPanel grid = new JPanel(new GridLayout(0, 4, 20, 20)); 
-        grid.setBackground(new Color(245, 245, 250));
-        grid.setAlignmentX(Component.LEFT_ALIGNMENT);
+        searchPanel.add(searchIcon);
+        searchPanel.add(searchField);
 
-        List<Products> inventory = ProductData.getProducts();
-        for (Products p : inventory) {
-            grid.add(createProductCard(p));
-        }
+        headerPanel.add(welcome, BorderLayout.WEST);
+        headerPanel.add(searchPanel, BorderLayout.EAST);
+        contentPanel.add(headerPanel, BorderLayout.NORTH);
 
-        contentPanel.add(grid);
-
-        JScrollPane scroll = new JScrollPane(contentPanel);
+        gridPanel = new JPanel(new GridLayout(0, 4, 20, 20));
+        gridPanel.setBackground(new Color(245, 245, 250));
+        
+        JPanel gridWrapper = new JPanel(new BorderLayout());
+        gridWrapper.setBackground(new Color(245, 245, 250));
+        gridWrapper.add(gridPanel, BorderLayout.NORTH);
+        
+        JScrollPane scroll = new JScrollPane(gridWrapper);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
-        add(scroll, BorderLayout.CENTER);
+        contentPanel.add(scroll, BorderLayout.CENTER);
+
+        JPanel paginationPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        paginationPanel.setBackground(new Color(245, 245, 250));
+        paginationPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
+
+        prevBtn = createNavButton("< Previous", false);
+        nextBtn = createNavButton("Next >", false);
+        pageLabel = new JLabel("Page 1");
+        pageLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+        prevBtn.addActionListener(e -> {
+            if (currentPage > 0) {
+                currentPage--;
+                updateGrid();
+            }
+        });
+
+        nextBtn.addActionListener(e -> {
+            int maxPage = (int) Math.ceil((double) currentViewList.size() / ITEMS_PER_PAGE) - 1;
+            if (currentPage < maxPage) {
+                currentPage++;
+                updateGrid();
+            }
+        });
+
+        paginationPanel.add(prevBtn);
+        paginationPanel.add(pageLabel);
+        paginationPanel.add(nextBtn);
+        contentPanel.add(paginationPanel, BorderLayout.SOUTH);
+
+        add(contentPanel, BorderLayout.CENTER);
+
+        updateGrid();
+    }
+
+    private void filterProducts() {
+        String query = searchField.getText().toLowerCase().trim();
+        
+        if (query.isEmpty()) {
+            currentViewList = new ArrayList<>(allInventory);
+        } else {
+            currentViewList = allInventory.stream()
+                .filter(p -> p.getName().toLowerCase().contains(query))
+                .collect(Collectors.toList());
+        }
+        
+        currentPage = 0;
+        updateGrid();
+    }
+
+    private void updateGrid() {
+        gridPanel.removeAll();
+        
+        int start = currentPage * ITEMS_PER_PAGE;
+        int end = Math.min(start + ITEMS_PER_PAGE, currentViewList.size());
+        
+        for (int i = start; i < end; i++) {
+            gridPanel.add(createProductCard(currentViewList.get(i)));
+        }
+
+        int itemsToShow = end - start;
+        int emptySlots = ITEMS_PER_PAGE - itemsToShow;
+        for (int i = 0; i < emptySlots; i++) {
+            JPanel spacer = new JPanel();
+            spacer.setOpaque(false);
+            gridPanel.add(spacer);
+        }
+
+        int totalPages = (int) Math.ceil((double) currentViewList.size() / ITEMS_PER_PAGE);
+        if (totalPages == 0) totalPages = 1;
+        pageLabel.setText("Page " + (currentPage + 1) + " of " + totalPages);
+
+        prevBtn.setEnabled(currentPage > 0);
+        nextBtn.setEnabled(currentPage < totalPages - 1);
+        
+        prevBtn.setForeground(prevBtn.isEnabled() ? new Color(30, 80, 200) : Color.LIGHT_GRAY);
+        nextBtn.setForeground(nextBtn.isEnabled() ? new Color(30, 80, 200) : Color.LIGHT_GRAY);
+
+        gridPanel.revalidate();
+        gridPanel.repaint();
     }
 
     private void updateCartLabel() {
@@ -156,7 +272,7 @@ public class CustomerHome extends JFrame {
                 JLabel nameLbl = new JLabel("<html><b>" + p.getName() + "</b><br>Qty: " + qty + "</html>");
                 nameLbl.setBorder(new EmptyBorder(10, 0, 10, 0));
                 
-                String priceText = String.format("₱%.2f", lineTotal);
+                String priceText;
                 if (isBulkEligible) {
                     int discCount = Math.min(qty, BULK_LIMIT);
                     priceText = "<html><div style='text-align: right;'>" +
@@ -244,7 +360,6 @@ public class CustomerHome extends JFrame {
                 }
 
                 if (imageToScale != null) {
-                    // Use the new smart scaling method
                     imgLabel.setIcon(scaleImagePreservingRatio(imageToScale, 240, 240));
                 } else {
                     imgLabel.setText("No Image");
@@ -305,7 +420,6 @@ public class CustomerHome extends JFrame {
         return card;
     }
 
-    // New helper method to scale images nicely
     private ImageIcon scaleImagePreservingRatio(Image originalImage, int targetWidth, int targetHeight) {
         int originalWidth = originalImage.getWidth(null);
         int originalHeight = originalImage.getHeight(null);
@@ -313,7 +427,6 @@ public class CustomerHome extends JFrame {
         double widthRatio = (double) targetWidth / originalWidth;
         double heightRatio = (double) targetHeight / originalHeight;
 
-        // Use the smaller ratio to fit the image entirely within the target box
         double scaleFactor = Math.min(widthRatio, heightRatio);
 
         int newWidth = (int) (originalWidth * scaleFactor);
