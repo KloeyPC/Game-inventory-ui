@@ -3,7 +3,7 @@ import java.awt.event.*;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashMap; 
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
@@ -14,7 +14,6 @@ import javax.swing.event.DocumentListener;
 
 public class CustomerHome extends JFrame {
 
-    private Map<Products, Integer> cart = new HashMap<>();
     private List<Products> allInventory;
     private List<Products> currentViewList;
     
@@ -28,8 +27,6 @@ public class CustomerHome extends JFrame {
     private JTextField searchField;
 
     private static final int BULK_MIN = 10;
-    private static final int BULK_LIMIT = 20;
-    private static final double DISCOUNT_RATE = 0.10;
 
     private Map<String, String> coverArtMap = new HashMap<>();
 
@@ -71,7 +68,8 @@ public class CustomerHome extends JFrame {
             new MyOrdersPage(this.getLocation()).setVisible(true);
         });
         
-        cartLabel = new JLabel("Cart (0)");
+        cartLabel = new JLabel();
+        updateCartLabel();
         cartLabel.setFont(new Font("Arial", Font.BOLD, 14));
         cartLabel.setForeground(new Color(30, 80, 200));
         cartLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -228,7 +226,7 @@ public class CustomerHome extends JFrame {
     }
 
     private void updateCartLabel() {
-        int totalItems = cart.values().stream().mapToInt(Integer::intValue).sum();
+        int totalItems = CartData.items.values().stream().mapToInt(Integer::intValue).sum();
         cartLabel.setText("Cart (" + totalItems + ")");
     }
 
@@ -247,10 +245,10 @@ public class CustomerHome extends JFrame {
         double tempTotal = 0;
         StringBuilder itemsSummary = new StringBuilder();
 
-        if (cart.isEmpty()) {
+        if (CartData.items.isEmpty()) {
             listPanel.add(new JLabel("Your cart is empty."));
         } else {
-            for (Map.Entry<Products, Integer> entry : cart.entrySet()) {
+            for (Map.Entry<Products, Integer> entry : CartData.items.entrySet()) {
                 Products p = entry.getKey();
                 int qty = entry.getValue();
                 
@@ -326,22 +324,22 @@ public class CustomerHome extends JFrame {
         checkoutBtn.setFocusPainted(false);
         
         checkoutBtn.addActionListener(e -> {
-            if (cart.isEmpty()) {
+            if (CartData.items.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Cart is empty!");
                 return;
             }
 
-            MyOrdersPage.Order newOrder = new MyOrdersPage.Order(
+            Order newOrder = new Order(
                 "ORD-" + (System.currentTimeMillis() % 10000), 
                 LocalDate.now().toString(), 
                 String.format("₱%.2f", grandTotal), 
                 "Placed", 
                 finalItems
             );
-            MyOrdersPage.globalOrders.add(0, newOrder);
+            Order.globalOrders.add(0, newOrder);
 
             JOptionPane.showMessageDialog(dialog, "Order Placed Successfully!\nYou can track it in My Orders.");
-            cart.clear();
+            CartData.items.clear();
             updateCartLabel();
             dialog.dispose();
             
@@ -431,7 +429,7 @@ public class CustomerHome extends JFrame {
         
         addBtn.addActionListener(e -> {
             int quantity = (Integer) qtySpinner.getValue();
-            cart.put(p, cart.getOrDefault(p, 0) + quantity);
+            CartData.items.put(p, CartData.items.getOrDefault(p, 0) + quantity);
             updateCartLabel();
             qtySpinner.setValue(1); 
         });
@@ -478,7 +476,7 @@ public class CustomerHome extends JFrame {
     }
 
     private void initCoverArt() {
-        coverArtMap.put("Devil May Cry", "images/dmcv.jpg");
+        coverArtMap.put("Devil May Cry", "images/dmcv.png");
         coverArtMap.put("Resident Evil", "images/Residentvil.jpg");
         coverArtMap.put("Pokemon", "images/Pokemon_Legends_Z-A_Key_Art_Logo.png");
         coverArtMap.put("Zelda", "images/zelda.jpg");

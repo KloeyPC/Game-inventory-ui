@@ -1,27 +1,16 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class OrderData {
+public class Order {
+    String id, date, total, status, items;
     
-    public static class Order {
-        String id, date, total, status, items;
-        
-        public Order(String id, String date, String total, String status, String items) {
-            this.id = id;
-            this.date = date;
-            this.total = total;
-            this.status = status;
-            this.items = items;
-        }
-    }
+    public static List<Order> globalOrders = new ArrayList<>();
 
-    private static List<Order> orders = new ArrayList<>();
-
-    public static List<Order> getOrders() {
-        return orders;
-    }
-
-    public static void addOrder(Order order) {
-        orders.add(0, order); 
+    public Order(String id, String date, String total, String status, String items) {
+        this.id = id;
+        this.date = date;
+        this.total = total;
+        this.status = status;
+        this.items = items;
     }
 }

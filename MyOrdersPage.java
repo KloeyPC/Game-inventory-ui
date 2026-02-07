@@ -1,12 +1,14 @@
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.time.LocalDate;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 public class MyOrdersPage extends JFrame {
 
-    public static List<Order> globalOrders = new ArrayList<>();
+    private JLabel cartLabel;
 
     public MyOrdersPage() {
         this(null);
@@ -42,9 +44,17 @@ public class MyOrdersPage extends JFrame {
 
         JButton trackBtn = createNavButton("My Orders", true);
         
-        JLabel cartLabel = new JLabel("Cart");
-        cartLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        cartLabel.setForeground(Color.DARK_GRAY);
+        cartLabel = new JLabel();
+        updateCartLabel();
+        cartLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        cartLabel.setForeground(new Color(30, 80, 200));
+        cartLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        cartLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                showCartDialog();
+            }
+        });
 
         JButton logoutBtn = createNavButton("Logout", false);
         logoutBtn.addActionListener(e -> {
@@ -72,13 +82,13 @@ public class MyOrdersPage extends JFrame {
         contentPanel.add(title);
         contentPanel.add(Box.createVerticalStrut(20));
 
-        if (globalOrders.isEmpty()) {
+        if (Order.globalOrders.isEmpty()) {
             JLabel emptyLabel = new JLabel("No orders found.");
             emptyLabel.setFont(new Font("Arial", Font.PLAIN, 16));
             emptyLabel.setForeground(Color.GRAY);
             contentPanel.add(emptyLabel);
         } else {
-            for (Order order : globalOrders) {
+            for (Order order : Order.globalOrders) {
                 contentPanel.add(createOrderCard(order));
                 contentPanel.add(Box.createVerticalStrut(20));
             }
@@ -88,6 +98,135 @@ public class MyOrdersPage extends JFrame {
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         add(scroll, BorderLayout.CENTER);
+    }
+
+    private void updateCartLabel() {
+        int totalItems = CartData.items.values().stream().mapToInt(Integer::intValue).sum();
+        cartLabel.setText("Cart (" + totalItems + ")");
+    }
+
+    private void showCartDialog() {
+        JDialog dialog = new JDialog(this, "Your Cart", true);
+        dialog.setSize(700, 600);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+        dialog.getContentPane().setBackground(Color.WHITE);
+
+        JPanel listPanel = new JPanel();
+        listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
+        listPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        listPanel.setBackground(Color.WHITE);
+
+        double tempTotal = 0;
+        StringBuilder itemsSummary = new StringBuilder();
+
+        if (CartData.items.isEmpty()) {
+            listPanel.add(new JLabel("Your cart is empty."));
+        } else {
+            for (Map.Entry<Products, Integer> entry : CartData.items.entrySet()) {
+                Products p = entry.getKey();
+                int qty = entry.getValue();
+                
+                if (itemsSummary.length() > 0) itemsSummary.append(", ");
+                itemsSummary.append(p.getName()).append(" (x").append(qty).append(")");
+
+                double discountRate = 0.0;
+                String discountLabel = "";
+                
+                if (qty >= 50) {
+                    discountRate = 0.20; 
+                    discountLabel = "20% OFF (Bulk 50+)";
+                } else if (qty >= 20) {
+                    discountRate = 0.15; 
+                    discountLabel = "15% OFF (Bulk 20+)";
+                } else if (qty >= 10) {
+                    discountRate = 0.10; 
+                    discountLabel = "10% OFF (Bulk 10+)";
+                }
+
+                double unitPrice = p.getPrice();
+                double grossTotal = unitPrice * qty;
+                double lineTotal = grossTotal * (1.0 - discountRate);
+                
+                tempTotal += lineTotal;
+
+                JPanel row = new JPanel(new BorderLayout());
+                row.setBackground(Color.WHITE);
+                row.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(240, 240, 240)));
+                row.setMaximumSize(new Dimension(650, 75));
+
+                JLabel nameLbl = new JLabel("<html><b>" + p.getName() + "</b><br>Qty: " + qty + "</html>");
+                nameLbl.setBorder(new EmptyBorder(10, 0, 10, 0));
+                
+                String priceText;
+                if (discountRate > 0) {
+                    priceText = "<html><div style='text-align: right;'>" +
+                                "<font color='gray'><s>SRP: ₱" + String.format("%.2f", grossTotal) + "</s></font><br>" +
+                                "<font color='green'><b>₱" + String.format("%.2f", lineTotal) + "</b></font><br>" +
+                                "<font size='2' color='green'>" + discountLabel + "</font>" + 
+                                "</div></html>";
+                } else {
+                    priceText = "<html><b>₱" + String.format("%.2f", lineTotal) + "</b></html>";
+                }
+                
+                JLabel priceLbl = new JLabel(priceText, SwingConstants.RIGHT);
+                
+                row.add(nameLbl, BorderLayout.CENTER);
+                row.add(priceLbl, BorderLayout.EAST);
+                listPanel.add(row);
+                listPanel.add(Box.createVerticalStrut(5));
+            }
+        }
+
+        final double grandTotal = tempTotal;
+        final String finalItems = itemsSummary.toString();
+
+        JScrollPane scroll = new JScrollPane(listPanel);
+        scroll.setBorder(null);
+        dialog.add(scroll, BorderLayout.CENTER);
+
+        JPanel footer = new JPanel(new BorderLayout());
+        footer.setBorder(new EmptyBorder(20, 20, 20, 20));
+        footer.setBackground(new Color(250, 250, 250));
+
+        JLabel totalLbl = new JLabel("Total: ₱" + String.format("%.2f", grandTotal));
+        totalLbl.setFont(new Font("Arial", Font.BOLD, 18));
+
+        JButton checkoutBtn = new JButton("Checkout");
+        checkoutBtn.setBackground(new Color(30, 80, 200));
+        checkoutBtn.setForeground(Color.WHITE);
+        checkoutBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        checkoutBtn.setFocusPainted(false);
+        
+        checkoutBtn.addActionListener(e -> {
+            if (CartData.items.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Cart is empty!");
+                return;
+            }
+
+            Order newOrder = new Order(
+                "ORD-" + (System.currentTimeMillis() % 10000), 
+                LocalDate.now().toString(), 
+                String.format("₱%.2f", grandTotal), 
+                "Placed", 
+                finalItems
+            );
+            Order.globalOrders.add(0, newOrder);
+
+            JOptionPane.showMessageDialog(dialog, "Order Placed Successfully!\nYou can track it in My Orders.");
+            CartData.items.clear();
+            updateCartLabel();
+            dialog.dispose();
+            
+            this.dispose();
+            new MyOrdersPage(this.getLocation()).setVisible(true);
+        });
+
+        footer.add(totalLbl, BorderLayout.WEST);
+        footer.add(checkoutBtn, BorderLayout.EAST);
+        dialog.add(footer, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
     }
 
     private JPanel createOrderCard(Order order) {
@@ -168,16 +307,5 @@ public class MyOrdersPage extends JFrame {
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return btn;
-    }
-
-    public static class Order {
-        String id, date, total, status, items;
-        public Order(String id, String date, String total, String status, String items) {
-            this.id = id;
-            this.date = date;
-            this.total = total;
-            this.status = status;
-            this.items = items;
-        }
     }
 }
