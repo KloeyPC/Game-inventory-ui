@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -256,7 +255,6 @@ public class CustomerHome extends JFrame {
                 Products p = entry.getKey();
                 int qty = entry.getValue();
                 
-                // Build item summary string for the order
                 if (itemsSummary.length() > 0) itemsSummary.append(", ");
                 itemsSummary.append(p.getName()).append(" (x").append(qty).append(")");
 
@@ -331,22 +329,22 @@ public class CustomerHome extends JFrame {
                 return;
             }
 
-            // Save Order to OrderData
-            String orderId = "ORD-" + (1000 + new Random().nextInt(9000));
-            String date = LocalDate.now().toString();
-            String totalStr = "₱" + String.format("%.2f", grandTotal);
-            
-            OrderData.Order newOrder = new OrderData.Order(orderId, date, totalStr, "Placed", finalItems);
-            OrderData.addOrder(newOrder);
+            MyOrdersPage.Order newOrder = new MyOrdersPage.Order(
+                "ORD-" + (System.currentTimeMillis() % 10000), 
+                LocalDate.now().toString(), 
+                String.format("₱%.2f", grandTotal), 
+                "Placed", 
+                finalItems
+            );
+            MyOrdersPage.globalOrders.add(0, newOrder);
 
-            JOptionPane.showMessageDialog(dialog, "Order Placed Successfully!");
+            JOptionPane.showMessageDialog(dialog, "Order Placed Successfully!\nYou can track it in My Orders.");
             cart.clear();
             updateCartLabel();
             dialog.dispose();
             
-            // Go to My Orders page automatically
-            CustomerHome.this.dispose();
-            new MyOrdersPage(CustomerHome.this.getLocation()).setVisible(true);
+            this.dispose();
+            new MyOrdersPage(this.getLocation()).setVisible(true);
         });
 
         footer.add(totalLbl, BorderLayout.WEST);

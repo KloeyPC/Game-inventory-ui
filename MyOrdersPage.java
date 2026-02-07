@@ -1,9 +1,21 @@
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 public class MyOrdersPage extends JFrame {
+
+    public static List<Order> globalOrders = new ArrayList<>();
+
+    static {
+        globalOrders.add(new Order("ORD-8892", "2026-02-04", "₱5,990.00", "Processing", 
+                "Pokemon Legends ZA (x2)"));
+        globalOrders.add(new Order("ORD-7721", "2026-02-01", "₱1,995.00", "Shipped", 
+                "Resident Evil Village (x1)"));
+        globalOrders.add(new Order("ORD-1102", "2026-01-28", "₱16,495.00", "Delivered", 
+                "PS5 Console (x1)"));
+    }
 
     public MyOrdersPage() {
         this(null);
@@ -69,18 +81,9 @@ public class MyOrdersPage extends JFrame {
         contentPanel.add(title);
         contentPanel.add(Box.createVerticalStrut(20));
 
-        List<OrderData.Order> myOrders = OrderData.getOrders();
-
-        if (myOrders.isEmpty()) {
-            JLabel empty = new JLabel("You haven't placed any orders yet.");
-            empty.setFont(new Font("Arial", Font.ITALIC, 14));
-            empty.setForeground(Color.GRAY);
-            contentPanel.add(empty);
-        } else {
-            for (OrderData.Order order : myOrders) {
-                contentPanel.add(createOrderCard(order));
-                contentPanel.add(Box.createVerticalStrut(20));
-            }
+        for (Order order : globalOrders) {
+            contentPanel.add(createOrderCard(order));
+            contentPanel.add(Box.createVerticalStrut(20));
         }
 
         JScrollPane scroll = new JScrollPane(contentPanel);
@@ -89,7 +92,7 @@ public class MyOrdersPage extends JFrame {
         add(scroll, BorderLayout.CENTER);
     }
 
-    private JPanel createOrderCard(OrderData.Order order) {
+    private JPanel createOrderCard(Order order) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -167,5 +170,16 @@ public class MyOrdersPage extends JFrame {
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return btn;
+    }
+
+    public static class Order {
+        String id, date, total, status, items;
+        public Order(String id, String date, String total, String status, String items) {
+            this.id = id;
+            this.date = date;
+            this.total = total;
+            this.status = status;
+            this.items = items;
+        }
     }
 }
