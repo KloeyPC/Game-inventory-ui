@@ -8,15 +8,6 @@ public class MyOrdersPage extends JFrame {
 
     public static List<Order> globalOrders = new ArrayList<>();
 
-    static {
-        globalOrders.add(new Order("ORD-8892", "2026-02-04", "₱5,990.00", "Processing", 
-                "Pokemon Legends ZA (x2)"));
-        globalOrders.add(new Order("ORD-7721", "2026-02-01", "₱1,995.00", "Shipped", 
-                "Resident Evil Village (x1)"));
-        globalOrders.add(new Order("ORD-1102", "2026-01-28", "₱16,495.00", "Delivered", 
-                "PS5 Console (x1)"));
-    }
-
     public MyOrdersPage() {
         this(null);
     }
@@ -81,9 +72,16 @@ public class MyOrdersPage extends JFrame {
         contentPanel.add(title);
         contentPanel.add(Box.createVerticalStrut(20));
 
-        for (Order order : globalOrders) {
-            contentPanel.add(createOrderCard(order));
-            contentPanel.add(Box.createVerticalStrut(20));
+        if (globalOrders.isEmpty()) {
+            JLabel emptyLabel = new JLabel("No orders found.");
+            emptyLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+            emptyLabel.setForeground(Color.GRAY);
+            contentPanel.add(emptyLabel);
+        } else {
+            for (Order order : globalOrders) {
+                contentPanel.add(createOrderCard(order));
+                contentPanel.add(Box.createVerticalStrut(20));
+            }
         }
 
         JScrollPane scroll = new JScrollPane(contentPanel);

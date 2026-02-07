@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -30,7 +29,7 @@ public class CustomerHome extends JFrame {
 
     private static final int BULK_MIN = 10;
     private static final int BULK_LIMIT = 20;
-    private static final double DISCOUNT_RATE = 0.15;
+    private static final double DISCOUNT_RATE = 0.10;
 
     private Map<String, String> coverArtMap = new HashMap<>();
 
@@ -189,7 +188,7 @@ public class CustomerHome extends JFrame {
         } else {
             currentViewList = allInventory.stream()
                 .filter(p -> p.getName().toLowerCase().contains(query))
-                .collect(Collectors.toList());
+                .collect(java.util.stream.Collectors.toList());
         }
         
         currentPage = 0;
@@ -235,7 +234,7 @@ public class CustomerHome extends JFrame {
 
     private void showCartDialog() {
         JDialog dialog = new JDialog(this, "Your Cart", true);
-        dialog.setSize(650, 550);
+        dialog.setSize(700, 600);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
         dialog.getContentPane().setBackground(Color.WHITE);
@@ -258,37 +257,40 @@ public class CustomerHome extends JFrame {
                 if (itemsSummary.length() > 0) itemsSummary.append(", ");
                 itemsSummary.append(p.getName()).append(" (x").append(qty).append(")");
 
-                double unitPrice = p.getPrice();
-                double lineTotal = 0;
-                boolean isBulkEligible = qty >= BULK_MIN;
+                double discountRate = 0.0;
+                String discountLabel = "";
                 
-                if (isBulkEligible) {
-                    int discountedCount = Math.min(qty, BULK_LIMIT);
-                    int regularCount = qty - discountedCount;
-                    
-                    double discountedPrice = unitPrice * (1.0 - DISCOUNT_RATE);
-                    lineTotal = (discountedCount * discountedPrice) + (regularCount * unitPrice);
-                } else {
-                    lineTotal = qty * unitPrice;
+                if (qty >= 50) {
+                    discountRate = 0.20; 
+                    discountLabel = "20% OFF (Bulk 50+)";
+                } else if (qty >= 20) {
+                    discountRate = 0.15; 
+                    discountLabel = "15% OFF (Bulk 20+)";
+                } else if (qty >= 10) {
+                    discountRate = 0.10; 
+                    discountLabel = "10% OFF (Bulk 10+)";
                 }
+
+                double unitPrice = p.getPrice();
+                double grossTotal = unitPrice * qty;
+                double lineTotal = grossTotal * (1.0 - discountRate);
                 
                 tempTotal += lineTotal;
 
                 JPanel row = new JPanel(new BorderLayout());
                 row.setBackground(Color.WHITE);
                 row.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(240, 240, 240)));
-                row.setMaximumSize(new Dimension(600, 70));
+                row.setMaximumSize(new Dimension(650, 75));
 
                 JLabel nameLbl = new JLabel("<html><b>" + p.getName() + "</b><br>Qty: " + qty + "</html>");
                 nameLbl.setBorder(new EmptyBorder(10, 0, 10, 0));
                 
                 String priceText;
-                if (isBulkEligible) {
-                    int discCount = Math.min(qty, BULK_LIMIT);
+                if (discountRate > 0) {
                     priceText = "<html><div style='text-align: right;'>" +
-                                "<font color='gray'>SRP: ₱" + p.getPrice() + "</font><br>" +
-                                "<font color='green'><b>Total: ₱" + String.format("%.2f", lineTotal) + "</b></font><br>" +
-                                "<font size='2' color='green'>" + discCount + " items @ 15% OFF</font>" + 
+                                "<font color='gray'><s>SRP: ₱" + String.format("%.2f", grossTotal) + "</s></font><br>" +
+                                "<font color='green'><b>₱" + String.format("%.2f", lineTotal) + "</b></font><br>" +
+                                "<font size='2' color='green'>" + discountLabel + "</font>" + 
                                 "</div></html>";
                 } else {
                     priceText = "<html><b>₱" + String.format("%.2f", lineTotal) + "</b></html>";
@@ -476,7 +478,7 @@ public class CustomerHome extends JFrame {
     }
 
     private void initCoverArt() {
-        coverArtMap.put("Devil May Cry", "images/dmcv.png");
+        coverArtMap.put("Devil May Cry", "images/dmcv.jpg");
         coverArtMap.put("Resident Evil", "images/Residentvil.jpg");
         coverArtMap.put("Pokemon", "images/Pokemon_Legends_Z-A_Key_Art_Logo.png");
         coverArtMap.put("Zelda", "images/zelda.jpg");
