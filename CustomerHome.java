@@ -1,10 +1,12 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -245,6 +247,7 @@ public class CustomerHome extends JFrame {
         listPanel.setBackground(Color.WHITE);
 
         double tempTotal = 0;
+        StringBuilder itemsSummary = new StringBuilder();
 
         if (cart.isEmpty()) {
             listPanel.add(new JLabel("Your cart is empty."));
@@ -253,6 +256,10 @@ public class CustomerHome extends JFrame {
                 Products p = entry.getKey();
                 int qty = entry.getValue();
                 
+                // Build item summary string for the order
+                if (itemsSummary.length() > 0) itemsSummary.append(", ");
+                itemsSummary.append(p.getName()).append(" (x").append(qty).append(")");
+
                 double unitPrice = p.getPrice();
                 double lineTotal = 0;
                 boolean isBulkEligible = qty >= BULK_MIN;
@@ -299,6 +306,7 @@ public class CustomerHome extends JFrame {
         }
 
         final double grandTotal = tempTotal;
+        final String finalItems = itemsSummary.toString();
 
         JScrollPane scroll = new JScrollPane(listPanel);
         scroll.setBorder(null);
@@ -318,10 +326,27 @@ public class CustomerHome extends JFrame {
         checkoutBtn.setFocusPainted(false);
         
         checkoutBtn.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialog, "Order Placed Successfully!\nTotal Paid: ₱" + String.format("%.2f", grandTotal));
+            if (cart.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Cart is empty!");
+                return;
+            }
+
+            // Save Order to OrderData
+            String orderId = "ORD-" + (1000 + new Random().nextInt(9000));
+            String date = LocalDate.now().toString();
+            String totalStr = "₱" + String.format("%.2f", grandTotal);
+            
+            OrderData.Order newOrder = new OrderData.Order(orderId, date, totalStr, "Placed", finalItems);
+            OrderData.addOrder(newOrder);
+
+            JOptionPane.showMessageDialog(dialog, "Order Placed Successfully!");
             cart.clear();
             updateCartLabel();
             dialog.dispose();
+            
+            // Go to My Orders page automatically
+            CustomerHome.this.dispose();
+            new MyOrdersPage(CustomerHome.this.getLocation()).setVisible(true);
         });
 
         footer.add(totalLbl, BorderLayout.WEST);

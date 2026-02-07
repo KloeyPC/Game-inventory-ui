@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -70,17 +69,18 @@ public class MyOrdersPage extends JFrame {
         contentPanel.add(title);
         contentPanel.add(Box.createVerticalStrut(20));
 
-        List<Order> myOrders = new ArrayList<>();
-        myOrders.add(new Order("ORD-2026-8892", "Feb 4, 2026", "₱5,990.00", "Processing", 
-                "Pokemon Legends ZA (x2)"));
-        myOrders.add(new Order("ORD-2026-7721", "Feb 1, 2026", "₱1,995.00", "Shipped", 
-                "Resident Evil Village (x1)"));
-        myOrders.add(new Order("ORD-2026-1102", "Jan 28, 2026", "₱16,495.00", "Delivered", 
-                "PS5 Console (x1)"));
+        List<OrderData.Order> myOrders = OrderData.getOrders();
 
-        for (Order order : myOrders) {
-            contentPanel.add(createOrderCard(order));
-            contentPanel.add(Box.createVerticalStrut(20));
+        if (myOrders.isEmpty()) {
+            JLabel empty = new JLabel("You haven't placed any orders yet.");
+            empty.setFont(new Font("Arial", Font.ITALIC, 14));
+            empty.setForeground(Color.GRAY);
+            contentPanel.add(empty);
+        } else {
+            for (OrderData.Order order : myOrders) {
+                contentPanel.add(createOrderCard(order));
+                contentPanel.add(Box.createVerticalStrut(20));
+            }
         }
 
         JScrollPane scroll = new JScrollPane(contentPanel);
@@ -89,7 +89,7 @@ public class MyOrdersPage extends JFrame {
         add(scroll, BorderLayout.CENTER);
     }
 
-    private JPanel createOrderCard(Order order) {
+    private JPanel createOrderCard(OrderData.Order order) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -167,16 +167,5 @@ public class MyOrdersPage extends JFrame {
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return btn;
-    }
-
-    static class Order {
-        String id, date, total, status, items;
-        public Order(String id, String date, String total, String status, String items) {
-            this.id = id;
-            this.date = date;
-            this.total = total;
-            this.status = status;
-            this.items = items;
-        }
     }
 }
