@@ -6,6 +6,7 @@
 
 # Unignore Java files
 !*.java
+!*.jar
 
 # Unignore this file
 !.gitignore
