@@ -61,9 +61,32 @@ public class RegisterPage extends JFrame {
         registerBtn.setFont(new Font("Arial", Font.BOLD, 14));
         registerBtn.setFocusPainted(false);
         registerBtn.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Account Created Successfully!");
-            this.dispose();
-            new LoginPage(this.getLocation()).setVisible(true);
+            String username = userField.getText();
+            String password = new String(passField.getPassword());
+            String confirm = new String(confirmField.getPassword());
+            String email = emailField.getText();
+
+            // Validation
+            if (username.contains(" ")) {
+                JOptionPane.showMessageDialog(this, "Username cannot contain spaces.");
+                return;
+            }
+            if (password.length() < 8) {
+                JOptionPane.showMessageDialog(this, "Password must be at least 8 characters.");
+                return;
+            }
+            if (!password.equals(confirm)) {
+                JOptionPane.showMessageDialog(this, "Passwords do not match.");
+                return;
+            }
+
+            if (DatabaseHelper.registerUser(username, password, email)) {
+                JOptionPane.showMessageDialog(this, "Account Created Successfully!");
+                this.dispose();
+                new LoginPage(this.getLocation()).setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this, "Registration failed. Username might be taken.");
+            }
         });
         gbc.gridy = 5;
         gbc.insets = new Insets(20, 10, 10, 10);

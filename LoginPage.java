@@ -50,9 +50,16 @@ public class LoginPage extends JFrame {
         // --- EMPLOYEE LOGIN BUTTON ---
         JButton employeeBtn = createStyledButton("EMPLOYEE LOGIN");
         employeeBtn.addActionListener(e -> {
-            this.dispose();
-            // Opens the Admin/Inventory Dashboard
-            new GameStoreInventoryUI(this.getLocation()).setVisible(true);
+            String role = DatabaseHelper.validateUser(userField.getText(), new String(passField.getPassword()));
+            if ("ADMIN".equals(role)) {
+                this.dispose();
+                // Opens the Admin/Inventory Dashboard
+                new GameStoreInventoryUI(this.getLocation()).setVisible(true);
+            } else if (role != null) {
+                JOptionPane.showMessageDialog(this, "Access Denied: You are not an Admin.");
+            } else {
+                JOptionPane.showMessageDialog(this, "Invalid Username or Password.");
+            }
         });
         gbc.gridy = 3;
         mainPanel.add(employeeBtn, gbc);
@@ -60,9 +67,15 @@ public class LoginPage extends JFrame {
         // --- CUSTOMER LOGIN BUTTON ---
         JButton customerBtn = createStyledButton("CUSTOMER LOGIN");
         customerBtn.addActionListener(e -> {
-            this.dispose();
-            // UPDATED: Now opens the Customer Storefront
-            new CustomerHome(this.getLocation()).setVisible(true);
+            String uname = userField.getText();
+            String role = DatabaseHelper.validateUser(uname, new String(passField.getPassword()));
+            if (role != null) {
+                this.dispose();
+                // UPDATED: Now opens the Customer Storefront with Username
+                new CustomerHome(this.getLocation(), uname).setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this, "Invalid Username or Password.");
+            }
         });
         gbc.gridy = 4;
         mainPanel.add(customerBtn, gbc);

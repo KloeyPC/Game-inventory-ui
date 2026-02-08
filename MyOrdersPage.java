@@ -10,16 +10,25 @@ public class MyOrdersPage extends JFrame {
 
     private JLabel cartLabel;
 
+    private String currentUser;
+
     public MyOrdersPage() {
-        this(null);
+        this(null, "Guest");
     }
 
     public MyOrdersPage(Point location) {
-        setTitle("iSupply - My Orders");
+        this(location, "Guest");
+    }
+
+    public MyOrdersPage(Point location, String username) {
+        this.currentUser = username;
+        setTitle("iSupply - My Orders (" + username + ")");
         setSize(1200, 850);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        if (location != null) setLocation(location);
-        else setLocationRelativeTo(null);
+        if (location != null)
+            setLocation(location);
+        else
+            setLocationRelativeTo(null);
         setLayout(new BorderLayout());
         getContentPane().setBackground(new Color(245, 245, 250));
 
@@ -39,11 +48,11 @@ public class MyOrdersPage extends JFrame {
         JButton homeBtn = createNavButton("Home", false);
         homeBtn.addActionListener(e -> {
             this.dispose();
-            new CustomerHome(this.getLocation()).setVisible(true);
+            new CustomerHome(this.getLocation(), currentUser).setVisible(true);
         });
 
         JButton trackBtn = createNavButton("My Orders", true);
-        
+
         cartLabel = new JLabel();
         updateCartLabel();
         cartLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -82,13 +91,15 @@ public class MyOrdersPage extends JFrame {
         contentPanel.add(title);
         contentPanel.add(Box.createVerticalStrut(20));
 
-        if (Order.globalOrders.isEmpty()) {
-            JLabel emptyLabel = new JLabel("No orders found.");
+        java.util.List<Order> myOrders = DatabaseHelper.getUserOrders(currentUser);
+
+        if (myOrders.isEmpty()) {
+            JLabel emptyLabel = new JLabel("No orders found for " + currentUser);
             emptyLabel.setFont(new Font("Arial", Font.PLAIN, 16));
             emptyLabel.setForeground(Color.GRAY);
             contentPanel.add(emptyLabel);
         } else {
-            for (Order order : Order.globalOrders) {
+            for (Order order : myOrders) {
                 contentPanel.add(createOrderCard(order));
                 contentPanel.add(Box.createVerticalStrut(20));
             }
@@ -126,28 +137,29 @@ public class MyOrdersPage extends JFrame {
             for (Map.Entry<Products, Integer> entry : CartData.items.entrySet()) {
                 Products p = entry.getKey();
                 int qty = entry.getValue();
-                
-                if (itemsSummary.length() > 0) itemsSummary.append(", ");
+
+                if (itemsSummary.length() > 0)
+                    itemsSummary.append(", ");
                 itemsSummary.append(p.getName()).append(" (x").append(qty).append(")");
 
                 double discountRate = 0.0;
                 String discountLabel = "";
-                
+
                 if (qty >= 50) {
-                    discountRate = 0.20; 
+                    discountRate = 0.20;
                     discountLabel = "20% OFF (Bulk 50+)";
                 } else if (qty >= 20) {
-                    discountRate = 0.15; 
+                    discountRate = 0.15;
                     discountLabel = "15% OFF (Bulk 20+)";
                 } else if (qty >= 10) {
-                    discountRate = 0.10; 
+                    discountRate = 0.10;
                     discountLabel = "10% OFF (Bulk 10+)";
                 }
 
                 double unitPrice = p.getPrice();
                 double grossTotal = unitPrice * qty;
                 double lineTotal = grossTotal * (1.0 - discountRate);
-                
+
                 tempTotal += lineTotal;
 
                 JPanel row = new JPanel(new BorderLayout());
@@ -157,20 +169,20 @@ public class MyOrdersPage extends JFrame {
 
                 JLabel nameLbl = new JLabel("<html><b>" + p.getName() + "</b><br>Qty: " + qty + "</html>");
                 nameLbl.setBorder(new EmptyBorder(10, 0, 10, 0));
-                
+
                 String priceText;
                 if (discountRate > 0) {
                     priceText = "<html><div style='text-align: right;'>" +
-                                "<font color='gray'><s>SRP: ₱" + String.format("%.2f", grossTotal) + "</s></font><br>" +
-                                "<font color='green'><b>₱" + String.format("%.2f", lineTotal) + "</b></font><br>" +
-                                "<font size='2' color='green'>" + discountLabel + "</font>" + 
-                                "</div></html>";
+                            "<font color='gray'><s>SRP: ₱" + String.format("%.2f", grossTotal) + "</s></font><br>" +
+                            "<font color='green'><b>₱" + String.format("%.2f", lineTotal) + "</b></font><br>" +
+                            "<font size='2' color='green'>" + discountLabel + "</font>" +
+                            "</div></html>";
                 } else {
                     priceText = "<html><b>₱" + String.format("%.2f", lineTotal) + "</b></html>";
                 }
-                
+
                 JLabel priceLbl = new JLabel(priceText, SwingConstants.RIGHT);
-                
+
                 row.add(nameLbl, BorderLayout.CENTER);
                 row.add(priceLbl, BorderLayout.EAST);
                 listPanel.add(row);
@@ -197,7 +209,7 @@ public class MyOrdersPage extends JFrame {
         checkoutBtn.setForeground(Color.WHITE);
         checkoutBtn.setFont(new Font("Arial", Font.BOLD, 14));
         checkoutBtn.setFocusPainted(false);
-        
+
         checkoutBtn.addActionListener(e -> {
             if (CartData.items.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Cart is empty!");
@@ -205,19 +217,18 @@ public class MyOrdersPage extends JFrame {
             }
 
             Order newOrder = new Order(
-                "ORD-" + (System.currentTimeMillis() % 10000), 
-                LocalDate.now().toString(), 
-                String.format("₱%.2f", grandTotal), 
-                "Placed", 
-                finalItems
-            );
+                    "ORD-" + (System.currentTimeMillis() % 10000),
+                    LocalDate.now().toString(),
+                    String.format("₱%.2f", grandTotal),
+                    "Placed",
+                    finalItems);
             Order.globalOrders.add(0, newOrder);
 
             JOptionPane.showMessageDialog(dialog, "Order Placed Successfully!\nYou can track it in My Orders.");
             CartData.items.clear();
             updateCartLabel();
             dialog.dispose();
-            
+
             this.dispose();
             new MyOrdersPage(this.getLocation()).setVisible(true);
         });
@@ -233,18 +244,17 @@ public class MyOrdersPage extends JFrame {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(230, 230, 230), 1),
-            new EmptyBorder(20, 20, 20, 20)
-        ));
+                BorderFactory.createLineBorder(new Color(230, 230, 230), 1),
+                new EmptyBorder(20, 20, 20, 20)));
         card.setMaximumSize(new Dimension(1000, 180));
 
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(Color.WHITE);
-        
+
         JLabel idLabel = new JLabel("Order #" + order.id + "  |  " + order.date);
         idLabel.setFont(new Font("Arial", Font.BOLD, 14));
         idLabel.setForeground(Color.DARK_GRAY);
-        
+
         JLabel priceLabel = new JLabel("Total: " + order.total);
         priceLabel.setFont(new Font("Arial", Font.BOLD, 16));
         priceLabel.setForeground(new Color(30, 80, 200));
@@ -269,28 +279,29 @@ public class MyOrdersPage extends JFrame {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(10, 0, 0, 0));
 
-        String[] steps = {"Placed", "Processing", "Shipped", "Delivered"};
+        String[] steps = { "Placed", "Processing", "Shipped", "Delivered" };
         int currentStepIndex = -1;
 
-        for(int i=0; i<steps.length; i++) {
-            if(steps[i].equals(status)) currentStepIndex = i;
+        for (int i = 0; i < steps.length; i++) {
+            if (steps[i].equals(status))
+                currentStepIndex = i;
         }
 
         for (int i = 0; i < steps.length; i++) {
             boolean isCompleted = i <= currentStepIndex;
-            
+
             JLabel stepLbl = new JLabel(steps[i], SwingConstants.CENTER);
             stepLbl.setOpaque(true);
             stepLbl.setFont(new Font("Arial", Font.BOLD, 12));
-            
+
             if (isCompleted) {
-                stepLbl.setBackground(new Color(220, 255, 220)); 
-                stepLbl.setForeground(new Color(0, 100, 0));     
-                stepLbl.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 0, new Color(0, 150, 0))); 
+                stepLbl.setBackground(new Color(220, 255, 220));
+                stepLbl.setForeground(new Color(0, 100, 0));
+                stepLbl.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 0, new Color(0, 150, 0)));
             } else {
-                stepLbl.setBackground(new Color(245, 245, 245)); 
+                stepLbl.setBackground(new Color(245, 245, 245));
                 stepLbl.setForeground(Color.GRAY);
-                stepLbl.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 0, Color.LIGHT_GRAY)); 
+                stepLbl.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 0, Color.LIGHT_GRAY));
             }
             panel.add(stepLbl);
         }

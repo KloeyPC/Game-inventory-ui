@@ -12,8 +12,10 @@ public class DashboardPage extends JFrame {
         setTitle("iSupply - Dashboard");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        if (location != null) setLocation(location);
-        else setLocationRelativeTo(null);
+        if (location != null)
+            setLocation(location);
+        else
+            setLocationRelativeTo(null);
         setLayout(new BorderLayout());
         getContentPane().setBackground(Color.WHITE);
 
@@ -79,11 +81,42 @@ public class DashboardPage extends JFrame {
         bGbc.fill = GridBagConstraints.BOTH;
         bGbc.insets = new Insets(0, 0, 0, 20);
 
-        bGbc.gridx = 0; bGbc.weightx = 0.65; bGbc.weighty = 1.0;
+        bGbc.gridx = 0;
+        bGbc.weightx = 0.65;
+        bGbc.weighty = 1.0;
         bottomRow.add(createPopularSalesPanel(), bGbc);
 
-        bGbc.gridx = 1; bGbc.weightx = 0.35; bGbc.insets = new Insets(0, 0, 0, 0);
-        bottomRow.add(createKPICard("Profit", "₱450,678.90", "+20% month over month"), bGbc);
+        // Fetch Real Stats
+        int totalProducts = 0;
+        double totalRevenue = 0;
+        int totalOrders = 0;
+
+        try {
+            java.util.List<Products> prods = DatabaseHelper.getAllProducts();
+            totalProducts = prods.size();
+
+            java.util.List<Order> orders = DatabaseHelper.getAllOrders();
+            totalOrders = orders.size();
+            for (Order o : orders) {
+                try {
+                    totalRevenue += Double.parseDouble(o.getTotal().replace("₱", "").replace(",", ""));
+                } catch (Exception e) {
+                }
+            }
+        } catch (Exception e) {
+        }
+
+        bGbc.gridx = 1;
+        bGbc.weightx = 0.35;
+        bGbc.insets = new Insets(0, 0, 0, 0);
+
+        JPanel kpiPanel = new JPanel(new GridLayout(3, 1, 0, 10));
+        kpiPanel.setOpaque(false);
+        kpiPanel.add(createKPICard("Total Revenue", String.format("₱%,.2f", totalRevenue), "Lifetime"));
+        kpiPanel.add(createKPICard("Total Orders", String.valueOf(totalOrders), "Lifetime"));
+        kpiPanel.add(createKPICard("Active Products", String.valueOf(totalProducts), "In Stock"));
+
+        bottomRow.add(kpiPanel, bGbc);
 
         gbc.gridy = 2;
         gbc.weighty = 0.4;
@@ -92,6 +125,8 @@ public class DashboardPage extends JFrame {
         mainPanel.add(dashboardGrid, BorderLayout.CENTER);
         add(mainPanel, BorderLayout.CENTER);
     }
+
+    // ... existing ...
 
     private JPanel createTimeFilter() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
@@ -137,11 +172,11 @@ public class DashboardPage extends JFrame {
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(240, 240, 240), 1, true),
-                new EmptyBorder(25, 25, 25, 25)));
+                new EmptyBorder(15, 15, 15, 15))); // Reduced padding
         JLabel titleLbl = new JLabel(title);
         titleLbl.setFont(new Font("Arial", Font.BOLD, 14));
         JLabel valLbl = new JLabel(value);
-        valLbl.setFont(new Font("Arial", Font.BOLD, 32));
+        valLbl.setFont(new Font("Arial", Font.BOLD, 24)); // Slightly smaller font
         JLabel subLbl = new JLabel(subtext);
         subLbl.setForeground(new Color(0, 150, 0));
         subLbl.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -172,7 +207,8 @@ public class DashboardPage extends JFrame {
 
         JPanel grid = new JPanel(new GridLayout(data.length + 1, 3, 0, 10));
         grid.setOpaque(false);
-        for (String c : cols) grid.add(new JLabel(c)).setForeground(Color.GRAY);
+        for (String c : cols)
+            grid.add(new JLabel(c)).setForeground(Color.GRAY);
         for (Object[] row : data) {
             grid.add(new JLabel((String) row[0]));
             grid.add(new JLabel((String) row[1]));
@@ -197,13 +233,18 @@ public class DashboardPage extends JFrame {
 
         if (!active) {
             btn.addActionListener(e -> {
-                Point currentLocation = this.getLocation(); 
-                this.dispose(); 
-                if (text.contains("Orders")) new GameStoreInventoryUI(currentLocation).setVisible(true);
-                else if (text.contains("Inventory")) new InventoryPage(currentLocation).setVisible(true);
-                else if (text.contains("Feedback")) new FeedbackPage(currentLocation).setVisible(true);
-                else if (text.contains("Suppliers")) new SuppliersPage(currentLocation).setVisible(true);
-                else if (text.contains("Dashboard")) new DashboardPage(currentLocation).setVisible(true);
+                Point currentLocation = this.getLocation();
+                this.dispose();
+                if (text.contains("Orders"))
+                    new GameStoreInventoryUI(currentLocation).setVisible(true);
+                else if (text.contains("Inventory"))
+                    new InventoryPage(currentLocation).setVisible(true);
+                else if (text.contains("Feedback"))
+                    new FeedbackPage(currentLocation).setVisible(true);
+                else if (text.contains("Suppliers"))
+                    new SuppliersPage(currentLocation).setVisible(true);
+                else if (text.contains("Dashboard"))
+                    new DashboardPage(currentLocation).setVisible(true);
             });
         }
         return btn;

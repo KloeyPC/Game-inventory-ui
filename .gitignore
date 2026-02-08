@@ -10,3 +10,4 @@
 
 # Unignore this file
 !.gitignore
+!.db

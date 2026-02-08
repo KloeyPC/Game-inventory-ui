@@ -25,8 +25,10 @@ public class InventoryPage extends JFrame {
         setTitle("iSupply - Inventory");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        if (location != null) setLocation(location);
-        else setLocationRelativeTo(null);
+        if (location != null)
+            setLocation(location);
+        else
+            setLocationRelativeTo(null);
         setLayout(new BorderLayout());
         getContentPane().setBackground(Color.WHITE);
 
@@ -107,11 +109,19 @@ public class InventoryPage extends JFrame {
 
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) { searchProducts(search.getText()); }
+            public void insertUpdate(DocumentEvent e) {
+                searchProducts(search.getText());
+            }
+
             @Override
-            public void removeUpdate(DocumentEvent e) { searchProducts(search.getText()); }
+            public void removeUpdate(DocumentEvent e) {
+                searchProducts(search.getText());
+            }
+
             @Override
-            public void changedUpdate(DocumentEvent e) { searchProducts(search.getText()); }
+            public void changedUpdate(DocumentEvent e) {
+                searchProducts(search.getText());
+            }
         });
 
         prevBtn.addActionListener(e -> {
@@ -145,13 +155,18 @@ public class InventoryPage extends JFrame {
 
         if (!active) {
             btn.addActionListener(e -> {
-                Point currentLocation = this.getLocation(); 
-                this.dispose(); 
-                if (text.contains("Orders")) new GameStoreInventoryUI(currentLocation).setVisible(true);
-                else if (text.contains("Dashboard")) new DashboardPage(currentLocation).setVisible(true);
-                else if (text.contains("Suppliers")) new SuppliersPage(currentLocation).setVisible(true);
-                else if (text.contains("Feedback")) new FeedbackPage(currentLocation).setVisible(true);
-                else if (text.contains("Inventory")) new InventoryPage(currentLocation).setVisible(true);
+                Point currentLocation = this.getLocation();
+                this.dispose();
+                if (text.contains("Orders"))
+                    new GameStoreInventoryUI(currentLocation).setVisible(true);
+                else if (text.contains("Dashboard"))
+                    new DashboardPage(currentLocation).setVisible(true);
+                else if (text.contains("Suppliers"))
+                    new SuppliersPage(currentLocation).setVisible(true);
+                else if (text.contains("Feedback"))
+                    new FeedbackPage(currentLocation).setVisible(true);
+                else if (text.contains("Inventory"))
+                    new InventoryPage(currentLocation).setVisible(true);
             });
         }
         return btn;
@@ -202,15 +217,21 @@ public class InventoryPage extends JFrame {
             gbc.gridy = row;
             gbc.insets = new Insets(10, 15, 10, 15);
 
-            gbc.gridx = 0; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.WEST;
+            gbc.gridx = 0;
+            gbc.weightx = 0.1;
+            gbc.anchor = GridBagConstraints.WEST;
             tablePanel.add(new JLabel(product.getType()), gbc);
 
-            gbc.gridx = 1; gbc.weightx = 0.6; gbc.anchor = GridBagConstraints.WEST;
+            gbc.gridx = 1;
+            gbc.weightx = 0.6;
+            gbc.anchor = GridBagConstraints.WEST;
             JLabel nameLbl = new JLabel(product.getName());
             nameLbl.setFont(new Font("Arial", Font.BOLD, 13));
             tablePanel.add(nameLbl, gbc);
 
-            gbc.gridx = 2; gbc.weightx = 0.1; gbc.anchor = GridBagConstraints.CENTER;
+            gbc.gridx = 2;
+            gbc.weightx = 0.1;
+            gbc.anchor = GridBagConstraints.CENTER;
             JLabel stock = new JLabel(String.valueOf(product.getStock()), SwingConstants.CENTER);
             stock.setPreferredSize(new Dimension(55, 30));
             stock.setOpaque(true);
@@ -218,16 +239,42 @@ public class InventoryPage extends JFrame {
             stock.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1, true));
             tablePanel.add(stock, gbc);
 
-            gbc.gridx = 3; gbc.weightx = 0.2; gbc.anchor = GridBagConstraints.EAST;
-            JPanel actionContainer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+            gbc.gridx = 3;
+            gbc.weightx = 0.2;
+            gbc.anchor = GridBagConstraints.EAST;
+            JPanel actionContainer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
             actionContainer.setOpaque(false);
-            actionContainer.add(new JLabel("\uD83D\uDC64"));
-            actionContainer.add(new JLabel("\u22EE"));
+
+            JButton editBtn = new JButton("\u270E"); // Pencil
+            editBtn.setToolTipText("Edit");
+            editBtn.setBorderPainted(false);
+            editBtn.setFocusPainted(false);
+            editBtn.setBackground(Color.WHITE);
+            editBtn.addActionListener(e -> new AddProductDialog(this, product).setVisible(true));
+
+            JButton deleteBtn = new JButton("\uD83D\uDDD1"); // Trash Test
+            deleteBtn.setToolTipText("Archive");
+            deleteBtn.setBorderPainted(false);
+            deleteBtn.setFocusPainted(false);
+            deleteBtn.setBackground(Color.WHITE);
+            deleteBtn.setForeground(Color.RED);
+            deleteBtn.addActionListener(e -> {
+                int conf = JOptionPane.showConfirmDialog(this, "Are you sure you want to archive this product?",
+                        "Archive Product", JOptionPane.YES_NO_OPTION);
+                if (conf == JOptionPane.YES_OPTION) {
+                    DatabaseHelper.archiveProduct(product.getId());
+                    searchProducts(search.getText()); // Refresh
+                }
+            });
+
+            actionContainer.add(editBtn);
+            actionContainer.add(deleteBtn);
             tablePanel.add(actionContainer, gbc);
         }
 
         int totalPages = (int) Math.ceil((double) filteredProducts.size() / item_page_size);
-        if (totalPages == 0) totalPages = 1;
+        if (totalPages == 0)
+            totalPages = 1;
         pageNumber.setText("Page " + (pageIndex + 1));
 
         tablePanel.revalidate();
@@ -236,9 +283,16 @@ public class InventoryPage extends JFrame {
 
     private class AddProductDialog extends JDialog {
         private JTextField typeField, nameField, stockField, priceField, dateField;
+        private Products productToEdit;
 
         public AddProductDialog(JFrame parent) {
-            super(parent, "Add New Product", true);
+            this(parent, null);
+        }
+
+        public AddProductDialog(JFrame parent, Products product) {
+            super(parent, product == null ? "Add New Product" : "Edit Product", true);
+            this.productToEdit = product;
+
             setSize(450, 550);
             setLocationRelativeTo(parent);
             setLayout(new BorderLayout());
@@ -246,7 +300,7 @@ public class InventoryPage extends JFrame {
 
             JPanel header = new JPanel();
             header.setBackground(Color.WHITE);
-            JLabel title = new JLabel("New Product Details");
+            JLabel title = new JLabel(product == null ? "New Product Details" : "Edit Details");
             title.setFont(new Font("Arial", Font.BOLD, 18));
             title.setBorder(new EmptyBorder(20, 0, 10, 0));
             header.add(title);
@@ -267,6 +321,14 @@ public class InventoryPage extends JFrame {
             priceField = createFormGroup(form, "Price (\u20B1)", gbc);
             dateField = createFormGroup(form, "Date Ordered", gbc);
 
+            if (product != null) {
+                typeField.setText(product.getType());
+                nameField.setText(product.getName());
+                stockField.setText(String.valueOf(product.getStock()));
+                priceField.setText(String.valueOf(product.getPrice()));
+                dateField.setText(product.getDateOrdered());
+            }
+
             add(form, BorderLayout.CENTER);
 
             JPanel actions = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
@@ -276,7 +338,7 @@ public class InventoryPage extends JFrame {
             styleButton(cancel, false);
             cancel.addActionListener(e -> dispose());
 
-            JButton save = new JButton("Add Product");
+            JButton save = new JButton(product == null ? "Add Product" : "Save Changes");
             styleButton(save, true);
             save.addActionListener(e -> saveProduct());
 
@@ -328,15 +390,25 @@ public class InventoryPage extends JFrame {
                 int stock = Integer.parseInt(stockField.getText().trim());
                 double price = Double.parseDouble(priceField.getText().trim());
 
-                Products newOne = new Products(type, name, stock, price, date);
-                ProductData.addProduct(newOne);
-                products = ProductData.getProducts();
+                if (productToEdit == null) {
+                    Products newOne = new Products(type, name, stock, price, date);
+                    DatabaseHelper.addProduct(newOne);
+                } else {
+                    productToEdit.setType(type);
+                    productToEdit.setName(name);
+                    productToEdit.setStock(stock);
+                    productToEdit.setPrice(price);
+                    productToEdit.setDateOrdered(date);
+                    DatabaseHelper.updateProduct(productToEdit);
+                }
+
+                products = DatabaseHelper.getAllProducts(); // Refresh list from DB
                 searchProducts(search.getText());
                 dispose();
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Invalid Number Format for Stock or Price.");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error adding product: " + ex.getMessage());
+                JOptionPane.showMessageDialog(this, "Error saving product: " + ex.getMessage());
             }
         }
     }

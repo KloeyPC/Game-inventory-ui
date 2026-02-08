@@ -3,7 +3,7 @@ import java.awt.event.*;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap; 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
@@ -16,7 +16,7 @@ public class CustomerHome extends JFrame {
 
     private List<Products> allInventory;
     private List<Products> currentViewList;
-    
+
     private int currentPage = 0;
     private final int ITEMS_PER_PAGE = 8;
 
@@ -30,22 +30,31 @@ public class CustomerHome extends JFrame {
 
     private Map<String, String> coverArtMap = new HashMap<>();
 
+    private String currentUser;
+
     public CustomerHome() {
-        this(null);
+        this(null, "Guest");
     }
 
     public CustomerHome(Point location) {
+        this(location, "Guest");
+    }
+
+    public CustomerHome(Point location, String username) {
+        this.currentUser = username;
         initCoverArt();
         allInventory = ProductData.getProducts();
         currentViewList = new ArrayList<>(allInventory);
 
-        setTitle("iSupply - Game Store");
+        setTitle("iSupply - Game Store (" + username + ")");
         setSize(1200, 850);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        if (location != null) setLocation(location);
-        else setLocationRelativeTo(null);
+        if (location != null)
+            setLocation(location);
+        else
+            setLocationRelativeTo(null);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(new Color(245, 245, 250)); 
+        getContentPane().setBackground(new Color(245, 245, 250));
 
         JPanel navBar = new JPanel(new BorderLayout());
         navBar.setBackground(Color.WHITE);
@@ -62,12 +71,13 @@ public class CustomerHome extends JFrame {
 
         JButton homeBtn = createNavButton("Home", true);
         JButton trackBtn = createNavButton("My Orders", false);
-        
+
         trackBtn.addActionListener(e -> {
             this.dispose();
-            new MyOrdersPage(this.getLocation()).setVisible(true);
+            // Pass username to MyOrdersPage
+            new MyOrdersPage(this.getLocation(), currentUser).setVisible(true);
         });
-        
+
         cartLabel = new JLabel();
         updateCartLabel();
         cartLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -79,7 +89,7 @@ public class CustomerHome extends JFrame {
                 showCartDialog();
             }
         });
-        
+
         JButton logoutBtn = createNavButton("Logout", false);
         logoutBtn.addActionListener(e -> {
             this.dispose();
@@ -106,23 +116,30 @@ public class CustomerHome extends JFrame {
 
         JLabel welcome = new JLabel("Featured Games");
         welcome.setFont(new Font("Arial", Font.BOLD, 24));
-        
+
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         searchPanel.setOpaque(false);
         JLabel searchIcon = new JLabel("\uD83D\uDD0D ");
         searchIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
-        
+
         searchField = new JTextField(20);
         searchField.setPreferredSize(new Dimension(250, 35));
         searchField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200)), 
-            BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
-        
+                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+
         searchField.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { filterProducts(); }
-            public void removeUpdate(DocumentEvent e) { filterProducts(); }
-            public void changedUpdate(DocumentEvent e) { filterProducts(); }
+            public void insertUpdate(DocumentEvent e) {
+                filterProducts();
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                filterProducts();
+            }
+
+            public void changedUpdate(DocumentEvent e) {
+                filterProducts();
+            }
         });
 
         searchPanel.add(searchIcon);
@@ -134,11 +151,11 @@ public class CustomerHome extends JFrame {
 
         gridPanel = new JPanel(new GridLayout(0, 4, 20, 20));
         gridPanel.setBackground(new Color(245, 245, 250));
-        
+
         JPanel gridWrapper = new JPanel(new BorderLayout());
         gridWrapper.setBackground(new Color(245, 245, 250));
         gridWrapper.add(gridPanel, BorderLayout.NORTH);
-        
+
         JScrollPane scroll = new JScrollPane(gridWrapper);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
@@ -180,25 +197,25 @@ public class CustomerHome extends JFrame {
 
     private void filterProducts() {
         String query = searchField.getText().toLowerCase().trim();
-        
+
         if (query.isEmpty()) {
             currentViewList = new ArrayList<>(allInventory);
         } else {
             currentViewList = allInventory.stream()
-                .filter(p -> p.getName().toLowerCase().contains(query))
-                .collect(java.util.stream.Collectors.toList());
+                    .filter(p -> p.getName().toLowerCase().contains(query))
+                    .collect(java.util.stream.Collectors.toList());
         }
-        
+
         currentPage = 0;
         updateGrid();
     }
 
     private void updateGrid() {
         gridPanel.removeAll();
-        
+
         int start = currentPage * ITEMS_PER_PAGE;
         int end = Math.min(start + ITEMS_PER_PAGE, currentViewList.size());
-        
+
         for (int i = start; i < end; i++) {
             gridPanel.add(createProductCard(currentViewList.get(i)));
         }
@@ -212,12 +229,13 @@ public class CustomerHome extends JFrame {
         }
 
         int totalPages = (int) Math.ceil((double) currentViewList.size() / ITEMS_PER_PAGE);
-        if (totalPages == 0) totalPages = 1;
+        if (totalPages == 0)
+            totalPages = 1;
         pageLabel.setText("Page " + (currentPage + 1) + " of " + totalPages);
 
         prevBtn.setEnabled(currentPage > 0);
         nextBtn.setEnabled(currentPage < totalPages - 1);
-        
+
         prevBtn.setForeground(prevBtn.isEnabled() ? new Color(30, 80, 200) : Color.LIGHT_GRAY);
         nextBtn.setForeground(nextBtn.isEnabled() ? new Color(30, 80, 200) : Color.LIGHT_GRAY);
 
@@ -251,28 +269,29 @@ public class CustomerHome extends JFrame {
             for (Map.Entry<Products, Integer> entry : CartData.items.entrySet()) {
                 Products p = entry.getKey();
                 int qty = entry.getValue();
-                
-                if (itemsSummary.length() > 0) itemsSummary.append(", ");
+
+                if (itemsSummary.length() > 0)
+                    itemsSummary.append(", ");
                 itemsSummary.append(p.getName()).append(" (x").append(qty).append(")");
 
                 double discountRate = 0.0;
                 String discountLabel = "";
-                
+
                 if (qty >= 50) {
-                    discountRate = 0.20; 
+                    discountRate = 0.20;
                     discountLabel = "20% OFF (Bulk 50+)";
                 } else if (qty >= 20) {
-                    discountRate = 0.15; 
+                    discountRate = 0.15;
                     discountLabel = "15% OFF (Bulk 20+)";
                 } else if (qty >= 10) {
-                    discountRate = 0.10; 
+                    discountRate = 0.10;
                     discountLabel = "10% OFF (Bulk 10+)";
                 }
 
                 double unitPrice = p.getPrice();
                 double grossTotal = unitPrice * qty;
                 double lineTotal = grossTotal * (1.0 - discountRate);
-                
+
                 tempTotal += lineTotal;
 
                 JPanel row = new JPanel(new BorderLayout());
@@ -282,20 +301,20 @@ public class CustomerHome extends JFrame {
 
                 JLabel nameLbl = new JLabel("<html><b>" + p.getName() + "</b><br>Qty: " + qty + "</html>");
                 nameLbl.setBorder(new EmptyBorder(10, 0, 10, 0));
-                
+
                 String priceText;
                 if (discountRate > 0) {
                     priceText = "<html><div style='text-align: right;'>" +
-                                "<font color='gray'><s>SRP: ₱" + String.format("%.2f", grossTotal) + "</s></font><br>" +
-                                "<font color='green'><b>₱" + String.format("%.2f", lineTotal) + "</b></font><br>" +
-                                "<font size='2' color='green'>" + discountLabel + "</font>" + 
-                                "</div></html>";
+                            "<font color='gray'><s>SRP: ₱" + String.format("%.2f", grossTotal) + "</s></font><br>" +
+                            "<font color='green'><b>₱" + String.format("%.2f", lineTotal) + "</b></font><br>" +
+                            "<font size='2' color='green'>" + discountLabel + "</font>" +
+                            "</div></html>";
                 } else {
                     priceText = "<html><b>₱" + String.format("%.2f", lineTotal) + "</b></html>";
                 }
-                
+
                 JLabel priceLbl = new JLabel(priceText, SwingConstants.RIGHT);
-                
+
                 row.add(nameLbl, BorderLayout.CENTER);
                 row.add(priceLbl, BorderLayout.EAST);
                 listPanel.add(row);
@@ -322,7 +341,7 @@ public class CustomerHome extends JFrame {
         checkoutBtn.setForeground(Color.WHITE);
         checkoutBtn.setFont(new Font("Arial", Font.BOLD, 14));
         checkoutBtn.setFocusPainted(false);
-        
+
         checkoutBtn.addActionListener(e -> {
             if (CartData.items.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Cart is empty!");
@@ -330,21 +349,23 @@ public class CustomerHome extends JFrame {
             }
 
             Order newOrder = new Order(
-                "ORD-" + (System.currentTimeMillis() % 10000), 
-                LocalDate.now().toString(), 
-                String.format("₱%.2f", grandTotal), 
-                "Placed", 
-                finalItems
-            );
-            Order.globalOrders.add(0, newOrder);
+                    "ORD-" + (System.currentTimeMillis() % 10000),
+                    LocalDate.now().toString(),
+                    String.format("₱%.2f", grandTotal),
+                    "Placed",
+                    finalItems);
+            newOrder.setUsername(currentUser); // Set Username
+
+            // SAVE TO DB
+            DatabaseHelper.createOrder(newOrder);
 
             JOptionPane.showMessageDialog(dialog, "Order Placed Successfully!\nYou can track it in My Orders.");
             CartData.items.clear();
             updateCartLabel();
             dialog.dispose();
-            
+
             this.dispose();
-            new MyOrdersPage(this.getLocation()).setVisible(true);
+            new MyOrdersPage(this.getLocation(), currentUser).setVisible(true);
         });
 
         footer.add(totalLbl, BorderLayout.WEST);
@@ -361,7 +382,7 @@ public class CustomerHome extends JFrame {
         card.setPreferredSize(new Dimension(250, 380));
 
         JLabel imgLabel = new JLabel("", SwingConstants.CENTER);
-        imgLabel.setPreferredSize(new Dimension(250, 250)); 
+        imgLabel.setPreferredSize(new Dimension(250, 250));
         imgLabel.setBackground(new Color(240, 240, 240));
         imgLabel.setOpaque(true);
 
@@ -373,18 +394,18 @@ public class CustomerHome extends JFrame {
                     break;
                 }
             }
-            
+
             if (path != null) {
                 URL url = getClass().getClassLoader().getResource(path);
                 Image imageToScale = null;
 
                 if (url != null) {
-                     imageToScale = ImageIO.read(url);
+                    imageToScale = ImageIO.read(url);
                 } else {
-                     ImageIcon icon = new ImageIcon(path);
-                     if (icon.getIconWidth() > 0) {
+                    ImageIcon icon = new ImageIcon(path);
+                    if (icon.getIconWidth() > 0) {
                         imageToScale = icon.getImage();
-                     }
+                    }
                 }
 
                 if (imageToScale != null) {
@@ -408,7 +429,7 @@ public class CustomerHome extends JFrame {
         JLabel title = new JLabel("<html>" + p.getName() + "</html>");
         title.setFont(new Font("Arial", Font.BOLD, 14));
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
+
         JLabel price = new JLabel("₱" + p.getPrice());
         price.setFont(new Font("Arial", Font.BOLD, 16));
         price.setForeground(new Color(0, 150, 0));
@@ -420,18 +441,18 @@ public class CustomerHome extends JFrame {
 
         JSpinner qtySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 99, 1));
         qtySpinner.setPreferredSize(new Dimension(50, 35));
-        
+
         JButton addBtn = new JButton("Add");
         addBtn.setBackground(new Color(30, 80, 200));
         addBtn.setForeground(Color.WHITE);
         addBtn.setFocusPainted(false);
         addBtn.setPreferredSize(new Dimension(80, 35));
-        
+
         addBtn.addActionListener(e -> {
             int quantity = (Integer) qtySpinner.getValue();
             CartData.items.put(p, CartData.items.getOrDefault(p, 0) + quantity);
             updateCartLabel();
-            qtySpinner.setValue(1); 
+            qtySpinner.setValue(1);
         });
 
         actionPanel.add(qtySpinner);
