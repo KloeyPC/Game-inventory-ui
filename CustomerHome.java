@@ -315,7 +315,28 @@ public class CustomerHome extends JFrame {
 
                 JLabel priceLbl = new JLabel(priceText, SwingConstants.RIGHT);
 
-                row.add(nameLbl, BorderLayout.CENTER);
+                JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+                leftPanel.setBackground(Color.WHITE);
+
+                JButton removeBtn = new JButton("X");
+                removeBtn.setForeground(Color.RED);
+                removeBtn.setFont(new Font("Arial", Font.BOLD, 10));
+                removeBtn.setBorder(new EmptyBorder(0, 5, 0, 5));
+                removeBtn.setContentAreaFilled(false);
+                removeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                removeBtn.setToolTipText("Remove Item");
+
+                removeBtn.addActionListener(e -> {
+                    CartData.items.remove(p);
+                    dialog.dispose();
+                    showCartDialog();
+                    updateCartLabel();
+                });
+
+                leftPanel.add(removeBtn);
+                leftPanel.add(nameLbl);
+
+                row.add(leftPanel, BorderLayout.CENTER);
                 row.add(priceLbl, BorderLayout.EAST);
                 listPanel.add(row);
                 listPanel.add(Box.createVerticalStrut(5));
@@ -355,6 +376,17 @@ public class CustomerHome extends JFrame {
                     "Placed",
                     finalItems);
             newOrder.setUsername(currentUser); // Set Username
+
+            // DEDUCT STOCK
+            for (Map.Entry<Products, Integer> entry : CartData.items.entrySet()) {
+                Products p = entry.getKey();
+                int qty = entry.getValue();
+
+                // Update local object
+                p.setStock(p.getStock() - qty);
+                // Update Database
+                DatabaseHelper.updateProduct(p);
+            }
 
             // SAVE TO DB
             DatabaseHelper.createOrder(newOrder);
@@ -450,7 +482,19 @@ public class CustomerHome extends JFrame {
 
         addBtn.addActionListener(e -> {
             int quantity = (Integer) qtySpinner.getValue();
-            CartData.items.put(p, CartData.items.getOrDefault(p, 0) + quantity);
+            int currentInCart = CartData.items.getOrDefault(p, 0);
+
+            if (currentInCart + quantity > p.getStock()) {
+                JOptionPane.showMessageDialog(this,
+                        "Cannot add " + quantity + " items. \n" +
+                                "Available stock: " + p.getStock() + "\n" +
+                                "In your cart: " + currentInCart,
+                        "Stock Limit Reached",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            CartData.items.put(p, currentInCart + quantity);
             updateCartLabel();
             qtySpinner.setValue(1);
         });

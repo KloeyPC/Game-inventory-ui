@@ -10,16 +10,11 @@ public class DatabaseHelper {
     private static final String URL = "jdbc:sqlite:game_inventory.db";
 
     // Initialize Database: Create tables if they don't exist
-    // Modified to RESET database on start as per user request for this session
+    // Modified to persistent storage with manual reset option
     public static void initialize() {
         try (Connection conn = DriverManager.getConnection(URL)) {
             if (conn != null) {
                 Statement stmt = conn.createStatement();
-
-                // DROP TABLES for Reset
-                stmt.execute("DROP TABLE IF EXISTS users");
-                stmt.execute("DROP TABLE IF EXISTS products");
-                stmt.execute("DROP TABLE IF EXISTS orders");
 
                 // Users Table
                 String createUsersTable = "CREATE TABLE IF NOT EXISTS users ("
@@ -51,10 +46,12 @@ public class DatabaseHelper {
                         + "items_summary TEXT)";
                 stmt.execute(createOrdersTable);
 
-                System.out.println("Database reset and initialized.");
+                System.out.println("Database initialized.");
 
-                // Seed 10 Games
-                seedGames(conn);
+                // Seed 10 Games ONLY if table is empty
+                if (isProductsEmpty(conn)) {
+                    seedGames(conn);
+                }
             }
         } catch (SQLException e) {
             System.out.println("Error initializing database: " + e.getMessage());
@@ -72,20 +69,48 @@ public class DatabaseHelper {
         }
     }
 
+    public static void resetDatabase() {
+        try (Connection conn = DriverManager.getConnection(URL)) {
+            if (conn != null) {
+                Statement stmt = conn.createStatement();
+                stmt.execute("DROP TABLE IF EXISTS users");
+                stmt.execute("DROP TABLE IF EXISTS products");
+                stmt.execute("DROP TABLE IF EXISTS orders");
+                System.out.println("Database dropped for reset.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error dropping tables: " + e.getMessage());
+        }
+
+        // Re-initialize to create tables and seed
+        initialize();
+    }
+
+    private static boolean isProductsEmpty(Connection conn) {
+        String sql = "SELECT COUNT(*) FROM products";
+        try (Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1) == 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
     private static void seedGames(Connection conn) throws SQLException {
         String sql = "INSERT INTO products(type, name, stock, price, date_ordered, status) VALUES(?, ?, ?, ?, ?, 'ACTIVE')";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             Object[][] games = {
-                    { "RPG", "Elden Ring", 50, 2999.00, "2024-01-10" },
-                    { "Action", "God of War Ragnarok", 40, 3490.00, "2024-02-15" },
-                    { "RPG", "Final Fantasy XVI", 35, 3290.00, "2024-03-01" },
-                    { "Adventure", "Zelda: Tears of the Kingdom", 60, 2890.00, "2024-01-20" },
-                    { "RPG", "Cyberpunk 2077", 45, 2500.00, "2024-02-10" },
-                    { "Action", "Spider-Man 2", 55, 3190.00, "2024-03-05" },
-                    { "Sim", "Animal Crossing", 30, 2400.00, "2024-01-05" },
-                    { "Shooter", "Call of Duty: MW3", 70, 3500.00, "2024-02-28" },
-                    { "Sports", "NBA 2K24", 80, 2800.00, "2024-03-10" },
-                    { "Horror", "Resident Evil 4 Remake", 25, 2600.00, "2024-01-15" }
+                    { "PS4", "Devil May Cry 5 - Special Edition", 50, 1495.00, "2026-01-15" },
+                    { "PS5", "Resident Evil Village", 30, 1995.00, "2026-01-20" },
+                    { "Switch", "Pokemon Legends ZA", 100, 2995.00, "2026-02-01" },
+                    { "Switch", "Legends Of Zelda Breath Of The Wild", 45, 2890.00, "2026-01-10" },
+                    { "PS5", "God of War Ragnarok", 60, 3490.00, "2026-01-25" },
+                    { "Switch", "Trails in the Sky 1st Chapter", 25, 2490.00, "2026-02-02" },
+                    { "PS5", "Monster Hunter Wilds", 150, 3790.00, "2026-02-03" },
+                    { "PS5", "Clair Obscur: Expedition 33", 40, 2990.00, "2026-01-30" }
             };
 
             for (Object[] game : games) {
@@ -97,7 +122,7 @@ public class DatabaseHelper {
                 pstmt.addBatch();
             }
             pstmt.executeBatch();
-            System.out.println("Seeded 10 games.");
+            System.out.println("Seeded " + games.length + " sample games.");
         }
     }
 

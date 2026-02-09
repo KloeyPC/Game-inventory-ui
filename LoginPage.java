@@ -101,13 +101,26 @@ public class LoginPage extends JFrame {
             }
         });
 
-        JLabel forgotPwd = new JLabel("Forgot password?");
-        forgotPwd.setForeground(Color.WHITE);
-        forgotPwd.setFont(new Font("Arial", Font.PLAIN, 12));
-        forgotPwd.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        JButton resetBtn = new JButton("Reset DB");
+        resetBtn.setForeground(Color.RED);
+        resetBtn.setFont(new Font("Arial", Font.BOLD, 12));
+        resetBtn.setContentAreaFilled(false);
+        resetBtn.setBorderPainted(false);
+        resetBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        resetBtn.addActionListener(e -> {
+            int choice = JOptionPane.showConfirmDialog(this,
+                    "Are you sure you want to RESET the database?\nThis will clear all users, products, and orders.",
+                    "Confirm Database Reset",
+                    JOptionPane.YES_NO_OPTION);
 
+            if (choice == JOptionPane.YES_OPTION) {
+                DatabaseHelper.resetDatabase();
+                JOptionPane.showMessageDialog(this, "Database has been reset to default state.");
+            }
+        });
+
+        footerPanel.add(resetBtn);
         footerPanel.add(registerBtn);
-        footerPanel.add(forgotPwd);
 
         gbc.gridy = 5;
         mainPanel.add(footerPanel, gbc);
