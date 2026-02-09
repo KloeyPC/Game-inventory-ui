@@ -1,17 +1,16 @@
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DatabaseHelper {
     private static final String URL = "jdbc:sqlite:game_inventory.db";
 
-    // --- INITIALIZATION ---
-
+    // Initialize Database: Create tables if they don't exist
+    // Modified to RESET database on start as per user request for this session
     public static void initialize() {
         try (Connection conn = DriverManager.getConnection(URL)) {
             if (conn != null) {
@@ -179,6 +178,7 @@ public class DatabaseHelper {
 
     public static List<Products> getAllProducts() {
         List<Products> list = new ArrayList<>();
+        // Only fetch ACTIVE products
         String sql = "SELECT * FROM products WHERE status = 'ACTIVE' OR status IS NULL";
         try (Connection conn = DriverManager.getConnection(URL);
                 Statement stmt = conn.createStatement();
@@ -250,7 +250,7 @@ public class DatabaseHelper {
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, order.getId());
             pstmt.setString(2, order.getUsername());
-            // Safe parse currency
+            // Safe parse
             double amount = 0.0;
             try {
                 amount = Double.parseDouble(order.getTotal().replace("₱", "").replace(",", ""));
@@ -300,7 +300,7 @@ public class DatabaseHelper {
                 Order o = new Order(
                         rs.getString("order_id"),
                         rs.getString("date"),
-                        String.format("₱%.2f", rs.getDouble("total_amount")), 
+                        String.format("₱%.2f", rs.getDouble("total_amount")),
                         rs.getString("status"),
                         rs.getString("items_summary"));
                 o.setUsername(rs.getString("username"));
@@ -310,54 +310,5 @@ public class DatabaseHelper {
             System.out.println("Error getting user orders: " + e.getMessage());
         }
         return list;
-    }
-    
-    // ==========================================
-    //  NEW METHODS FOR DASHBOARD ANALYTICS
-    // ==========================================
-
-    // 1. Save a simulated sale from the "Simulate Purchase" button
-    public void saveSimulatedOrder(String username, double totalAmount) {
-        // We use date('now') for the current date, and generate a random ID
-        String sql = "INSERT INTO orders(order_id, date, total_amount, username, status, items_summary) VALUES(?, date('now'), ?, ?, 'Completed', 'Simulated Purchase')";
-        try (Connection conn = DriverManager.getConnection(URL);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, "SIM-" + System.currentTimeMillis());
-            pstmt.setDouble(2, totalAmount);
-            pstmt.setString(3, username);
-            pstmt.executeUpdate();
-        } catch (SQLException e) { 
-            System.out.println("Error saving simulation: " + e.getMessage());
-        }
-    }
-
-    // 2. Calculate Total Sales for Today
-    public double getSalesToday() {
-        String sql = "SELECT SUM(total_amount) FROM orders WHERE date = date('now')";
-        try (Connection conn = DriverManager.getConnection(URL);
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) return rs.getDouble(1);
-        } catch (SQLException e) { 
-            e.printStackTrace(); 
-        }
-        return 0.0;
-    }
-
-    // 3. Get Data for the Bar Chart (Last 7 Days)
-    public Map<String, Double> getWeeklySales() {
-        Map<String, Double> data = new LinkedHashMap<>();
-        // Group by 'date' column
-        String sql = "SELECT date, SUM(total_amount) FROM orders GROUP BY date ORDER BY date DESC LIMIT 7";
-        try (Connection conn = DriverManager.getConnection(URL);
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                data.put(rs.getString(1), rs.getDouble(2));
-            }
-        } catch (SQLException e) { 
-            e.printStackTrace(); 
-        }
-        return data;
     }
 }
