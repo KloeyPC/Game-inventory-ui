@@ -47,22 +47,42 @@ public class LoginPage extends JFrame {
         mainPanel.add(passField, gbc);
         new GhostText(passField, "  \uD83D\uDD12   PASSWORD");
 
-      
         JButton employeeBtn = createStyledButton("EMPLOYEE LOGIN");
         employeeBtn.addActionListener(e -> {
-            this.dispose();
-           
-            new GameStoreInventoryUI(this.getLocation()).setVisible(true);
+            String username = userField.getText();
+            String password = new String(passField.getPassword());
+
+            String role = DatabaseHelper.validateUser(username, password);
+
+            if (role != null && role.equalsIgnoreCase("ADMIN")) {
+                this.dispose();
+                new GameStoreInventoryUI(this.getLocation()).setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Invalid admin credentials.",
+                        "Login Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         });
         gbc.gridy = 3;
         mainPanel.add(employeeBtn, gbc);
 
-        
         JButton customerBtn = createStyledButton("CUSTOMER LOGIN");
         customerBtn.addActionListener(e -> {
-            this.dispose();
-            
-            new CustomerHome(this.getLocation()).setVisible(true);
+            String username = userField.getText();
+            String password = new String(passField.getPassword());
+
+            String role = DatabaseHelper.validateUser(username, password);
+
+            if (role != null) {
+                this.dispose();
+                new CustomerHome(this.getLocation()).setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Invalid username or password.",
+                        "Login Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         });
         gbc.gridy = 4;
         mainPanel.add(customerBtn, gbc);
