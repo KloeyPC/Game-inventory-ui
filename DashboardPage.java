@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -19,6 +20,7 @@ public class DashboardPage extends JFrame {
         setLayout(new BorderLayout());
         getContentPane().setBackground(Color.WHITE);
 
+        // --- Sidebar ---
         JPanel sidebar = new JPanel();
         sidebar.setBackground(Color.WHITE);
         sidebar.setPreferredSize(new Dimension(240, 0));
@@ -30,15 +32,15 @@ public class DashboardPage extends JFrame {
         logo.setBorder(new EmptyBorder(30, 30, 30, 0));
         sidebar.add(logo);
 
-        sidebar.add(createSidebarBtn("\u25CF  Orders", false));
-        sidebar.add(createSidebarBtn("\u25CF  Inventory", false));
-        sidebar.add(createSidebarBtn("\u25CF  Dashboard", true));
-        sidebar.add(createSidebarBtn("\u25CF  Suppliers", false));
-        sidebar.add(createSidebarBtn("\u25CF  Feedback", false));
+        sidebar.add(createSidebarBtn("●  Orders", false));
+        sidebar.add(createSidebarBtn("●  Inventory", false));
+        sidebar.add(createSidebarBtn("●  Dashboard", true));
+        sidebar.add(createSidebarBtn("●  Suppliers", false));
+        sidebar.add(createSidebarBtn("●  Feedback", false));
 
         sidebar.add(Box.createVerticalGlue());
 
-        JButton logoutBtn = createSidebarBtn("\u25CF  Logout", false);
+        JButton logoutBtn = createSidebarBtn("●  Logout", false);
         logoutBtn.addActionListener(e -> {
             Point loc = this.getLocation();
             this.dispose();
@@ -48,6 +50,7 @@ public class DashboardPage extends JFrame {
         sidebar.add(Box.createVerticalStrut(20));
         add(sidebar, BorderLayout.WEST);
 
+        // --- Main Content ---
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(new Color(252, 252, 252));
         mainPanel.setBorder(new EmptyBorder(30, 40, 30, 40));
@@ -71,6 +74,7 @@ public class DashboardPage extends JFrame {
         gbc.gridy = 0;
         dashboardGrid.add(filterPanel, gbc);
 
+        // --- 1. SALES CHART ---
         gbc.gridy = 1;
         gbc.weighty = 0.5;
         dashboardGrid.add(createGraphPanel(), gbc);
@@ -86,24 +90,20 @@ public class DashboardPage extends JFrame {
         bGbc.weighty = 1.0;
         bottomRow.add(createPopularSalesPanel(), bGbc);
 
-        // Fetch Real Stats
+        // --- 2. FETCH REAL STATS ---
+        DatabaseHelper db = new DatabaseHelper();
         int totalProducts = 0;
-        double totalRevenue = 0;
         int totalOrders = 0;
-
+        double salesToday = 0.0; 
+        
         try {
-            java.util.List<Products> prods = DatabaseHelper.getAllProducts();
-            totalProducts = prods.size();
-
-            java.util.List<Order> orders = DatabaseHelper.getAllOrders();
-            totalOrders = orders.size();
-            for (Order o : orders) {
-                try {
-                    totalRevenue += Double.parseDouble(o.getTotal().replace("₱", "").replace(",", ""));
-                } catch (Exception e) {
-                }
-            }
+            // Get Counts
+            totalProducts = DatabaseHelper.getAllProducts().size();
+            totalOrders = DatabaseHelper.getAllOrders().size();
+            // Get Sales Today
+            salesToday = db.getSalesToday();
         } catch (Exception e) {
+            System.out.println("Error fetching dashboard stats: " + e.getMessage());
         }
 
         bGbc.gridx = 1;
@@ -112,7 +112,9 @@ public class DashboardPage extends JFrame {
 
         JPanel kpiPanel = new JPanel(new GridLayout(3, 1, 0, 10));
         kpiPanel.setOpaque(false);
-        kpiPanel.add(createKPICard("Total Revenue", String.format("₱%,.2f", totalRevenue), "Lifetime"));
+        
+        // --- 3. DISPLAY SALES TODAY ---
+        kpiPanel.add(createKPICard("Sales Today", String.format("₱%,.2f", salesToday), "Daily Performance"));
         kpiPanel.add(createKPICard("Total Orders", String.valueOf(totalOrders), "Lifetime"));
         kpiPanel.add(createKPICard("Active Products", String.valueOf(totalProducts), "In Stock"));
 
@@ -125,8 +127,6 @@ public class DashboardPage extends JFrame {
         mainPanel.add(dashboardGrid, BorderLayout.CENTER);
         add(mainPanel, BorderLayout.CENTER);
     }
-
-    // ... existing ...
 
     private JPanel createTimeFilter() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
@@ -157,13 +157,17 @@ public class DashboardPage extends JFrame {
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(240, 240, 240), 1, true),
                 new EmptyBorder(20, 20, 20, 20)));
-        JLabel title = new JLabel("Profit Graph");
+        
+        JLabel title = new JLabel("Sales Overview (Last 7 Days)");
         title.setFont(new Font("Arial", Font.BOLD, 14));
+        title.setBorder(new EmptyBorder(0, 0, 10, 0));
         panel.add(title, BorderLayout.NORTH);
 
-        JLabel graphImage = new JLabel("Profit trend line visual here...", SwingConstants.CENTER);
-        graphImage.setForeground(Color.LIGHT_GRAY);
-        panel.add(graphImage, BorderLayout.CENTER);
+        // Use SimpleBarChart with Real Data
+        DatabaseHelper db = new DatabaseHelper();
+        Map<String, Double> weeklySales = db.getWeeklySales();
+        panel.add(new SimpleBarChart(weeklySales), BorderLayout.CENTER);
+        
         return panel;
     }
 
@@ -172,11 +176,11 @@ public class DashboardPage extends JFrame {
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(240, 240, 240), 1, true),
-                new EmptyBorder(15, 15, 15, 15))); // Reduced padding
+                new EmptyBorder(15, 15, 15, 15))); 
         JLabel titleLbl = new JLabel(title);
         titleLbl.setFont(new Font("Arial", Font.BOLD, 14));
         JLabel valLbl = new JLabel(value);
-        valLbl.setFont(new Font("Arial", Font.BOLD, 24)); // Slightly smaller font
+        valLbl.setFont(new Font("Arial", Font.BOLD, 24)); 
         JLabel subLbl = new JLabel(subtext);
         subLbl.setForeground(new Color(0, 150, 0));
         subLbl.setFont(new Font("Arial", Font.PLAIN, 12));

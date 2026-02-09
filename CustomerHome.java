@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random; 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -74,7 +75,6 @@ public class CustomerHome extends JFrame {
 
         trackBtn.addActionListener(e -> {
             this.dispose();
-            // Pass username to MyOrdersPage
             new MyOrdersPage(this.getLocation(), currentUser).setVisible(true);
         });
 
@@ -188,6 +188,21 @@ public class CustomerHome extends JFrame {
         paginationPanel.add(prevBtn);
         paginationPanel.add(pageLabel);
         paginationPanel.add(nextBtn);
+        
+        // --- NEW SIMULATE PURCHASE BUTTON ---
+        JButton checkoutBtn = new JButton("Simulate Purchase ($50)");
+        checkoutBtn.setBackground(new Color(255, 165, 0)); // Orange
+        checkoutBtn.setForeground(Color.WHITE);
+        checkoutBtn.setFont(new Font("Arial", Font.BOLD, 14));
+        checkoutBtn.setFocusPainted(false);
+        checkoutBtn.addActionListener(e -> {
+            double amount = 50 + new Random().nextInt(100); 
+            // Call the NEW method in DatabaseHelper
+            new DatabaseHelper().saveSimulatedOrder(currentUser, amount); 
+            JOptionPane.showMessageDialog(this, "Purchase Successful! Amount: $" + amount + "\nAdmin Dashboard Updated.");
+        });
+        paginationPanel.add(checkoutBtn); 
+
         contentPanel.add(paginationPanel, BorderLayout.SOUTH);
 
         add(contentPanel, BorderLayout.CENTER);
@@ -354,9 +369,8 @@ public class CustomerHome extends JFrame {
                     String.format("₱%.2f", grandTotal),
                     "Placed",
                     finalItems);
-            newOrder.setUsername(currentUser); // Set Username
+            newOrder.setUsername(currentUser); 
 
-            // SAVE TO DB
             DatabaseHelper.createOrder(newOrder);
 
             JOptionPane.showMessageDialog(dialog, "Order Placed Successfully!\nYou can track it in My Orders.");
