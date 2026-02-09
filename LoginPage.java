@@ -101,18 +101,18 @@ public class LoginPage extends JFrame {
             }
         });
 
-        JLabel forgotPwd = new JLabel("Forgot password?");
-        forgotPwd.setForeground(Color.WHITE);
-        forgotPwd.setFont(new Font("Arial", Font.PLAIN, 12));
-        forgotPwd.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        // JLabel forgotPwd = new JLabel("Forgot password?");
+        // forgotPwd.setForeground(Color.WHITE);
+        // forgotPwd.setFont(new Font("Arial", Font.PLAIN, 12));
+        // forgotPwd.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        footerPanel.add(registerBtn);
-        footerPanel.add(forgotPwd);
+        // footerPanel.add(registerBtn);
+        // footerPanel.add(forgotPwd);
 
-        gbc.gridy = 5;
-        mainPanel.add(footerPanel, gbc);
+        // gbc.gridy = 5;
+        // mainPanel.add(footerPanel, gbc);
 
-        add(mainPanel);
+        // add(mainPanel);
     }
 
     private JButton createStyledButton(String text) {
